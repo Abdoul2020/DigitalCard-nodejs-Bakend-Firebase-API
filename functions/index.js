@@ -19,7 +19,9 @@ const {
 } = require("./handlers/userActions")
 
 const {
-    getAllUser
+    getAllUser,
+    ClickUrlCardLink,
+    getAllDateOfAuser
 } = require("./handlers/dataBack")
 
 
@@ -62,7 +64,9 @@ app.post("/uploadProfile", FBAuth, uploadProfile); //upload profile from dashboa
 
 //All userbring
 
-app.get("/allUser", getAllUser)
+app.get("/allUser", getAllUser);
+app.get("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
+app.get("/getallDateofClcick", FBAuth, getAllDateOfAuser)
 
 
 // The api to send to fireabase
