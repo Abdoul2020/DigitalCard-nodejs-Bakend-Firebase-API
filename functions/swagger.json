@@ -1,0 +1,196 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Hibritcard Swagger Firebase ",
+        "description": "A minimal and easy to follow example of what you need to create a CRUD style API in NodeJs",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "tags": [{
+        "name": "userActions",
+        "description": "An API from firebase to che-ange"
+    }],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Register to the system Hibritcard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                }
+            }
+        },
+
+        "/login": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Logtin in the system",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [{
+                    "name": "model",
+                    "in": "body",
+                    "description": "person detail",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/User"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    }
+                }
+            }
+        },
+        "/registerWithUrlCard": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Register withthe card URL in the system",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [{
+                    "name": "model",
+                    "in": "body",
+                    "description": "person detail",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/User"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    }
+                }
+            }
+        },
+        "/addSubProfile/newProfil": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Add the new subProfile in the system",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [{
+                    "name": "model",
+                    "in": "body",
+                    "description": "person detail",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/User"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    }
+                }
+            }
+        },
+        "/cardLinkAdd": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Add the new URL Card in the system",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [{
+                    "name": "model",
+                    "in": "body",
+                    "description": "person detail",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/User"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    }
+                }
+            }
+        }
+
+    },
+    "definitions": {
+        "User": {
+            "type": "object",
+            "properties": {
+                "gender": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string"
+                        },
+                        "first": {
+                            "type": "string"
+                        },
+                        "last": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
