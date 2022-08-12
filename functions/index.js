@@ -15,12 +15,19 @@ const {
     cardLinkRandomAdd, //carde url Link urteiyor
     socialUrlAdd,
     facebookUrlAdd,
-    uploadProfile
+    uploadProfile,
+    ClickUrlCardLink,
+    deleteUser,
+    singleUserInfo,
+    singleUserInfoWithgeneraluserId,
+    getAuthenticatedUser,
+    deleteSingleProfile,
+    getAllSubprofileOfGeneralUser
 } = require("./handlers/userActions")
 
 const {
     getAllUser,
-    ClickUrlCardLink,
+
     getAllDateOfAuser
 } = require("./handlers/dataBack")
 
@@ -62,11 +69,23 @@ app.post("/newSocialUrlAdd", FBAuth, socialUrlAdd) //add social url link
 app.post("/facebookUrlAdd", FBAuth, facebookUrlAdd) //facebook url add here
 app.post("/uploadProfile", FBAuth, uploadProfile); //upload profile from dashboard
 
-//All userbring
 
+app.get("/user/:userHandleName", singleUserInfo); //kullancici bilgiler getir bana with NAME
+app.get("/userid/:generalUserId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
+//user Info get with authenticated
+app.get("/userAuth", FBAuth, getAuthenticatedUser);
+
+// delete user
+app.delete("/deleteUser", FBAuth, deleteUser);
+app.delete("/deleteSingleProfile/:profilId", FBAuth, deleteSingleProfile);
+
+//All userbring
 app.get("/allUser", getAllUser);
 app.get("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
-app.get("/getallDateofClcick", FBAuth, getAllDateOfAuser)
+app.get("/getallDateofClick", FBAuth, getAllDateOfAuser)
+
+//subprofile
+app.get("/getAllSubProfile", FBAuth, getAllSubprofileOfGeneralUser)
 
 
 // The api to send to fireabase
