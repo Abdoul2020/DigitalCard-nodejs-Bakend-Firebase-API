@@ -22,7 +22,12 @@ const {
     singleUserInfoWithgeneraluserId,
     getAuthenticatedUser,
     deleteSingleProfile,
-    getAllSubprofileOfGeneralUser
+    getAllSubprofileOfGeneralUser,
+    updateGeneralUserData,
+    updateSingleUserData,
+    getallSocialMediaofSingleprofile,
+    socialUrlUpdate,
+    deleteSocialMediaOfProfile
 } = require("./handlers/userActions")
 
 const {
@@ -63,21 +68,28 @@ app.post("/register", registerClass); //register function
 app.post("/registerWithUrlCard", registerClassUrlReference) //register with card url
 app.post("/login", loginClass); //login into system from here.
 app.post("/loginWithCardUrl", FBAuth, loginClassWithUrlCard); //login into system from here.
-app.post("/addSubProfile/newProfil", FBAuth, addSubProfile);
+app.post("/addProfile", FBAuth, addSubProfile);
 app.post("/cardLinkAdd", FBAuth, cardLinkRandomAdd); //create card Link Url
-app.post("/newSocialUrlAdd", FBAuth, socialUrlAdd) //add social url link
+app.post("/newSocialUrlAdd/:profileId", FBAuth, socialUrlAdd) //add social url link
 app.post("/facebookUrlAdd", FBAuth, facebookUrlAdd) //facebook url add here
 app.post("/uploadProfile", FBAuth, uploadProfile); //upload profile from dashboard
 
+app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user Info
+app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
+app.post("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
 
-app.get("/user/:userHandleName", singleUserInfo); //kullancici bilgiler getir bana with NAME
-app.get("/userid/:generalUserId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
+
+
+app.get("/user/:userHandleName", singleUserInfo); //get all data with  Name.
+app.get("/userid/:userId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
 //user Info get with authenticated
-app.get("/userAuth", FBAuth, getAuthenticatedUser);
+app.get("/userAuthData", FBAuth, getAuthenticatedUser);
 
 // delete user
 app.delete("/deleteUser", FBAuth, deleteUser);
-app.delete("/deleteSingleProfile/:profilId", FBAuth, deleteSingleProfile);
+app.delete("/deleteProfile/:profilId", FBAuth, deleteSingleProfile);
+app.delete("/deleteSocialMediaofProfile/:profilId", FBAuth, deleteSocialMediaOfProfile);
+
 
 //All userbring
 app.get("/allUser", getAllUser);
@@ -85,7 +97,9 @@ app.get("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
 app.get("/getallDateofClick", FBAuth, getAllDateOfAuser)
 
 //subprofile
-app.get("/getAllSubProfile", FBAuth, getAllSubprofileOfGeneralUser)
+app.get("/getAllProfile", FBAuth, getAllSubprofileOfGeneralUser)
+    // get all social media of user
+app.get("/getAllSocialMedia/:profileId", FBAuth, getallSocialMediaofSingleprofile)
 
 
 // The api to send to fireabase

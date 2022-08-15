@@ -7,7 +7,7 @@ const firebase = require("firebase");
 firebase.initializeApp(firebaseConfig);
 
 
-const { validateSignUpData, validateLoginData, validateRegisterCardRefer, validateLoginWithCardUrl } = require("../importantDoc/validatorData");
+const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, validateLoginWithCardUrl } = require("../importantDoc/validatorData");
 
 
 exports.registerClass = (req, res) => {
@@ -29,15 +29,31 @@ exports.registerClass = (req, res) => {
 
     // the Image will bbe in hold for some second
     const defaultImage = "no-img.png"
-    const backImag = "back-img.png"
+    const backImag = "back-img.jpg"
+        //const checkUserHandleName = db.collection("userGeneral").where("userHandleName", "==", req.body.userHandleName)
 
     let generalToken
     let generalUserId
+
     db.doc(`/userGeneral/${newPersonInfo.eMail}`).get().then(doc => {
         if (doc.exists) {
-            return res.status(400).json({ eMail: "This Email has already registred." });
+            return res.status(400).json({ eMailAccountExist: "This Email has already registered" });
         } else {
-            return firebase.auth().createUserWithEmailAndPassword(newPersonInfo.eMail, newPersonInfo.password);
+
+            db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName).get().then(() => {
+                console.log("ayanı kullanıcı adı var")
+            })
+
+            //console.log("huytyh", db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName).get())
+
+            if (db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName)) {
+                return res.status(400).json({ userHandleExist: "This userHandleName has already registered" });
+            } else {
+
+                return firebase.auth().createUserWithEmailAndPassword(newPersonInfo.eMail, newPersonInfo.password);
+
+            }
+
         }
 
     }).then((data) => {
@@ -57,9 +73,11 @@ exports.registerClass = (req, res) => {
             birthDate: "",
             phoneNumber: "",
             gender: "",
-            cardPairing: "",
-            profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages/${defaultImage}?alt=media`,
+            cardPairing: ""
         }
+
+        // profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
+        // backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages%2F${backImag}?alt=media`,
 
         return db.doc(`/userGeneral/${newPersonInfo.eMail}`).set(userCredentials);
 
@@ -169,11 +187,11 @@ exports.loginClass = (req, res) => {
                 //auth/wrong-password
                 //auth/user-not-user
             if (err.code == "auth/wrong-password") {
-                return res.status(400).json({ hata: "Email or Password is wrong" });
+                return res.status(400).json({ error: "Email or Password is wrong" });
             } else if (err.code == "auth/user-not-found") {
-                return res.status(400).json({ hata: "please Try again, Wrong Informations!!" })
+                return res.status(400).json({ error: "please Try again, Wrong Informations!!" })
             } else if (err.code == "auth/too-many-requests") {
-                return res.status(400).json({ hata: "Please try later!!" })
+                return res.status(400).json({ error: "Please try later!!" })
             } else {
                 return res.status(500).json({ err: err.code })
             }
@@ -181,10 +199,13 @@ exports.loginClass = (req, res) => {
     }
 }
 
-//loginClass with card Url
+//this is my activate card link function form now
 exports.loginClassWithUrlCard = (req, res) => {
 
     if (req.body.secretKod.trim() === "") {
+        return res.status(400).json({ Body: " This field should be fill !!" })
+    }
+    if (req.body.verificationCode.trim() === "") {
         return res.status(400).json({ Body: " This field should be fill !!" })
     }
 
@@ -221,7 +242,7 @@ exports.loginClassWithUrlCard = (req, res) => {
                     loginCardData.cardUrlLinksId = doc.id
                     return db.doc(`/cardUrlLinks/${loginPerson.secretKod}`).update(loginCardData)
                 }).catch((err) => {
-                    res.status(400).json({ hata: "hata var burada" })
+                    res.status(400).json({ error: "hata var burada" })
                 })
             }).then(() => {
                 return res.status(201).json({ Succesful: "card url succesfully added" })
@@ -272,6 +293,7 @@ exports.uploadProfile = (req, res) => {
             Math.random() * 1000000000000
           ).toString()}.${imageExtension}`;
         const filePath = path.join(os.tmpdir(), imageFileName);
+        console.log("filePath:", filePath)
 
         imageToBeUploaded = { filePath, mimetype }
 
@@ -289,19 +311,18 @@ exports.uploadProfile = (req, res) => {
                 }
             }
         }).then(() => {
-            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
-            if (req.user.onurlLinkiId) {
-                db.doc(`/homepageLink/${req.user.onurlLinkiId}`).update({ profileUrl: imageUrlUploaded })
+            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${imageFileName}?alt=media`;
+            if (req.user.secretKod) {
+                db.doc(`/cardUrlLinks/${req.user.secretKod}`).update({ profileUrl: imageUrlUploaded })
             }
 
-            return (db.doc(`/userabd/${req.user.userHandle}`).update({ profileUrl: imageUrlUploaded }));
+            return (db.doc(`/userGeneral/${req.user.eMail}`).update({ profileUrl: imageUrlUploaded }));
         }).then(() => {
-            return res.json({ mesaj: "Profile fotografı başarıyla değiştirildi" });
+            return res.json({ mesaj: "Image Successfully Updated" });
         }).catch(err => {
             console.error(err)
             return res.status(500).json({ error: err.code })
         })
-
 
     });
 
@@ -331,19 +352,18 @@ exports.addSubProfile = (req, res) => {
         orderOfProfile,
         phoneNumber: "",
         profileAdres: "",
-        profileBanner: "",
         profileCompany: "",
         profilDescription: "",
         profileEmail: "",
         profileTheme: true,
-        profileImage: "",
         publicName: "",
         publicSurName: "",
         statusMode: true,
         statusOfUrl: true,
         telNumber: "",
-        profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages/${defaultImage}?alt=media`,
-        backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages/${backImag}?alt=media`
+        position: "",
+        profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
+        backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages%2F${backImag}?alt=media`,
     }
 
     let allgenraluserIdCount = [];
@@ -369,6 +389,9 @@ exports.addSubProfile = (req, res) => {
                     if (allgenraluserIdCount.length <= 5) {
                         ///return db.doc(`/profilesOfGeneralUser/${req.user.generalUserId}`).set(newProfileAdd);
                         return db.collection("profilesOfGeneralUser").add(newProfileAdd);
+                    } else {
+                        console.log("Sorry you account has reach the limit of profile")
+                            //return res.json({ fullAccount: "Sorry you account has reach the limit of profile" })
                     }
                 }).catch(err => {
                     console.error(err)
@@ -410,9 +433,8 @@ exports.cardLinkRandomAdd = (req, res) => {
         verificationCode
     }
 
-
     db.collection("cardUrlLinks").add(createIkon).then((data) => {
-        if (req.user.generalUserId === "m7W0yjynvNVtIT5LzcUDGWAcqpw1") {
+        if (req.user.generalUserId === "wp4hZ0SVO0biRb1Bcp55PTxSIE82") {
             const resScream = createIkon
             resScream.cardUrlLinksId = data.id
             res.json({ resScream });
@@ -430,14 +452,19 @@ exports.cardLinkRandomAdd = (req, res) => {
 exports.socialUrlAdd = (req, res) => {
 
     if (req.body.socialUrlLink.trim() === "") {
-        return res.status(400).json({ Hata: "This Url can't be Empty!!" });
+        return res.status(400).json({ Error: "This Url can't be Empty!!" });
+    }
+
+    if (req.body.socialtype.trim() === "") {
+        return res.status(400).json({ Error: "This Url can't be Empty!!" });
     }
 
     const newComments = {
         socialUrlLink: req.body.socialUrlLink,
+        socialtype: req.body.socialtype,
         eMail: req.user.eMail,
         generalUserId: req.user.generalUserId,
-        socialMediaName: req.body.socialMediaName,
+        profileId: req.params.profileId,
         statuMode: true
     }
 
@@ -446,7 +473,7 @@ exports.socialUrlAdd = (req, res) => {
 
     }).catch(err => {
         console.log(err)
-        return res.status(500).json({ Hata: err.code })
+        return res.status(500).json({ Error: err.code })
     })
 }
 
@@ -454,7 +481,7 @@ exports.socialUrlAdd = (req, res) => {
 //facebook
 exports.facebookUrlAdd = (req, res) => {
     if (req.body.socialUrlLink.trim() === "") {
-        return res.status(400).json({ Hata: "Url alanı boş geçilemez!!" });
+        return res.status(400).json({ Error: "Url alanı boş geçilemez!!" });
     }
     const newComments = {
         socialUrlLink: `facebook.com/${req.body.socialUrlLink}`,
@@ -467,7 +494,7 @@ exports.facebookUrlAdd = (req, res) => {
         res.json(newComments)
     }).catch(err => {
         console.log(err)
-        return res.status(500).json({ Hata: err.code })
+        return res.status(500).json({ Error: err.code })
     })
 
 }
@@ -487,7 +514,7 @@ exports.ClickUrlCardLink = (req, res) => {
             cardLinkData.urlcardId = doc.id
             return cardUrlClcikDate.get()
         } else {
-            return res.status(400).json({ Hata: "card url not found !!" })
+            return res.status(400).json({ Error: "card url not found !!" })
         }
     }).then((data) => {
 
@@ -523,10 +550,9 @@ exports.ClickUrlCardLink = (req, res) => {
 
 exports.deleteSingleProfile = (req, res) => {
     const subProfilDocument = db.doc(`/profilesOfGeneralUser/${req.params.profilId}`);
-
     subProfilDocument.get().then((doc) => {
         if (!doc.exists) {
-            return res.status(404).json({ Hata: "Profile Not Found!!" });
+            return res.status(404).json({ Error: "Profile Not Found!!" });
         }
         if (doc.data().genralUserId !== req.user.genralUserId) {
             return res.status(403).json({ Error: "don't have permission to delete Account  !!" })
@@ -574,7 +600,6 @@ exports.deleteUser = (req, res) => {
 
     }).then(() => {
         return res.json({ Mesaj: "user succesfully deleted !!!" })
-
     }).catch(err => {
         console.error(err);
         return res.status(500).json({ Err: err.code })
@@ -584,7 +609,7 @@ exports.deleteUser = (req, res) => {
 }
 
 
-//single user data Info witgh userName
+//single user data Info with userName, userView
 exports.singleUserInfo = (req, res) => {
     let singleUserData = {}
         // db.doc(`/userabd/${req.params.eMail}`).get()
@@ -592,39 +617,81 @@ exports.singleUserInfo = (req, res) => {
         if (!doc.empty) {
             return db.collection("cardUrlLinks").where("userHandleName", "==", req.params.userHandleName).get();
         } else {
-            return res.status(404).json({ Hata: "we dont't have such user" });
+            return res.status(404).json({ Error: "we dont't have such user" });
         }
 
     }).then((data) => {
         singleUserData.dataInfo = [];
         data.forEach(doc => {
             singleUserData.dataInfo.push({
-                profileUrl: doc.data().profileUrl,
                 publicName: doc.data().publicName,
                 publicSurname: doc.data().publicSurname,
                 userHandleName: doc.data().userHandleName,
                 eMail: doc.data().eMail,
-                generalUserId: doc.id
+                generalUserId: doc.data().generalUserId,
+                generalProfilId: doc.id
             })
         })
-        return res.json(singleUserData);
 
+        console.log("genraluserId:", singleUserData.dataInfo[0].generalUserId)
+
+        return db.collection("profilesOfGeneralUser").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).get()
+
+        //return res.json(singleUserData);
+    }).then((data) => {
+        singleUserData.allSubProfileInfo = [];
+        data.forEach(doc => {
+            singleUserData.allSubProfileInfo.push({
+                publicName: doc.data().publicName,
+                publicSurName: doc.data().publicSurname,
+                generalUserId: doc.data().generalUserId,
+                profileTag: doc.data().profileTag,
+                eMail: doc.data().eMail,
+                backgorundImage: doc.data().backgorundImage,
+                profileUrl: doc.data().profileUrl,
+                statusMode: doc.data().statusMode,
+                dateofCreation: doc.data().dateofCreation,
+                phoneNumber: doc.data().phoneNumber,
+                profilDescription: doc.data().profilDescription,
+                profileAdres: doc.data().profileAdres,
+                profileBanner: doc.data().profileBanner,
+                profileCompany: doc.data().profileCompany,
+                profileEmail: doc.data().profileEmail,
+                profileTheme: doc.data().profileTheme,
+                statusOfUrl: doc.data().statusOfUrl
+            })
+        })
+
+        return db.collection("userSocialMediaUrl").where("generalUserId", "==", singleUserData.allSubProfileInfo[0].generalUserId).get()
+
+    }).then((data) => {
+
+        singleUserData.allsocial = []
+        data.forEach((doc) => {
+            singleUserData.allsocial.push(doc.data());
+        })
+
+
+    })
+
+    .then(() => {
+        return res.json(singleUserData);
     }).catch(err => {
         console.error(err)
-        return res.status(500).json({ Hata: err.code })
+        return res.status(500).json({ Error: err.code })
     })
 
 }
 
-//single user data Info with generaluserId
+//single user data Info with generaluserId from userView
 exports.singleUserInfoWithgeneraluserId = (req, res) => {
     let singleUserData = {}
         // db.doc(`/userabd/${req.params.eMail}`).get()
-    db.collection("userGeneral").where("generalUserId", "==", req.params.generalUserId).get().then((doc) => {
+    db.collection("userGeneral").where("generalUserId", "==", req.params.userId).get().then((doc) => {
         if (!doc.empty) {
             return db.collection("cardUrlLinks").where("generalUserId", "==", req.params.generalUserId).get();
         } else {
-            return res.status(404).json({ Hata: "we dont't have such user" });
+            return res.status(404).json({ Error: "we dont't have such user" });
 
         }
 
@@ -632,7 +699,6 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
         singleUserData.dataInfo = [];
         data.forEach(doc => {
             singleUserData.dataInfo.push({
-                profileUrl: doc.data().profileUrl,
                 publicName: doc.data().publicName,
                 publicSurname: doc.data().publicSurname,
                 userHandleName: doc.data().userHandleName,
@@ -640,11 +706,44 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 generalUserId: doc.data().generalUserId
             })
         })
-        return res.json(singleUserData);
+        return db.collection("profilesOfGeneralUser").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).get()
 
+    }).then((data) => {
+        singleUserData.allSubProfileInfo = [];
+        data.forEach(doc => {
+            singleUserData.allSubProfileInfo.push({
+                publicName: doc.data().publicName,
+                publicSurName: doc.data().publicSurname,
+                profileTag: doc.data().profileTag,
+                generalUserId: doc.data().generalUserId,
+                eMail: doc.data().eMail,
+                backgorundImage: doc.data().backgorundImage,
+                profileUrl: doc.data().profileUrl,
+                statusMode: doc.data().statusMode,
+                dateofCreation: doc.data().dateofCreation,
+                phoneNumber: doc.data().phoneNumber,
+                profilDescription: doc.data().profilDescription,
+                profileAdres: doc.data().profileAdres,
+                profileBanner: doc.data().profileBanner,
+                profileCompany: doc.data().profileCompany,
+                profileEmail: doc.data().profileEmail,
+                profileTheme: doc.data().profileTheme,
+                statusOfUrl: doc.data().statusOfUrl
+            })
+        })
+
+        return db.collection("userSocialMediaUrl").where("generalUserId", "==", singleUserData.allSubProfileInfo[0].generalUserId).get()
+
+    }).then((data) => {
+        singleUserData.allsocial = []
+        data.forEach((doc) => {
+            singleUserData.allsocial.push(doc.data());
+        })
+    }).then(() => {
+        return res.json(singleUserData);
     }).catch(err => {
         console.error(err)
-        return res.status(500).json({ Hata: err.code })
+        return res.status(500).json({ Error: err.code })
     })
 
 }
@@ -658,7 +757,6 @@ exports.getAuthenticatedUser = ((req, res) => {
 
         if (doc.exists) {
             userDataInfo.credentials = doc.data(); //userCredentials olabilir
-
 
             return db.collection("profilesOfGeneralUser").where("generalUserId", "==", req.user.generalUserId).get()
 
@@ -680,23 +778,131 @@ exports.getAuthenticatedUser = ((req, res) => {
 
 })
 
+
+
 //all SubAccount get
 exports.getAllSubprofileOfGeneralUser = ((req, res) => {
-    let subUserDataInfo = {}
+        let subUserDataInfo = {}
 
-    const allSubprofile = db.collection("profilesOfGeneralUser").where("generalUserId", "==", req.user.generalUserId)
+        const allSubprofile = db.collection("profilesOfGeneralUser").where("generalUserId", "==", req.user.generalUserId)
 
-    allSubprofile.get().then((data) => {
-        subUserDataInfo.personalInfo = []
+        allSubprofile.get().then((data) => {
+            subUserDataInfo.personalInfo = []
+
+            data.forEach((doc) => {
+                subUserDataInfo.personalInfo.push(doc.data());
+                subUserDataInfo.profileId = subUserDataInfo.personalInfo.push({ SubprofileId: doc.id })
+            })
+        }).then(() => {
+            return res.json(subUserDataInfo)
+        }).catch(() => {
+            return res.status(400).json({ errorgetSuprofile: "error wihle..." })
+        })
+
+    })
+    ///check all handleName
+
+
+
+// userUpdate Info DATA
+exports.updateGeneralUserData = (req, res) => {
+    let infoToChange = reduceGeneralUserInfo(req.body);
+    db.doc(`/userGeneral/${req.user.eMail}`).update(infoToChange).then(() => {
+
+        return res.json({ success: "Succvessfully updated!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+    if (req.user.secretKod) {
+        db.doc(`/cardUrlLinks/${req.user.secretKod}`).update(infoToChange).then(() => {
+            return res.json({ Mesaj: "Succvessfully updated!!" })
+        }).catch((err) => {
+            console.error(err)
+            return res.status(500).json({ err: err.code })
+        })
+    }
+}
+
+// update of single profile
+exports.updateSingleUserData = (req, res) => {
+    let infoToChange = reduceSingleUserInfo(req.body);
+    const subProfilDocument = db.doc(`/profilesOfGeneralUser/${req.params.profilId}`);
+    subProfilDocument.update(infoToChange).then(() => {
+
+        return res.json({ success: "Succvessfully updated!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+// all social media of a single user with Auth
+exports.getallSocialMediaofSingleprofile = ((req, res) => {
+    let socialMedia = {}
+
+    const allsocialMedia = db.collection("userSocialMediaUrl").where("profileId", "==", req.params.profileId)
+
+    allsocialMedia.get().then((data) => {
+        socialMedia.allsocial = []
 
         data.forEach((doc) => {
-            subUserDataInfo.personalInfo.push(doc.data());
-            subUserDataInfo.profileId = subUserDataInfo.personalInfo.push({ SubprofileId: doc.id })
+            socialMedia.allsocial.push(doc.data());
         })
     }).then(() => {
-        return res.json(subUserDataInfo)
+        return res.json(socialMedia)
     }).catch(() => {
         return res.status(400).json({ errorgetSuprofile: "error wihle..." })
     })
 
 })
+
+// sosyal Media gucelleme
+exports.socialUrlUpdate = (req, res) => {
+
+    if (req.body.socialUrlLink.trim() === "") {
+        return res.status(400).json({ Error: "This Url can't be Empty!!" });
+    }
+
+    if (req.body.socialtype.trim() === "") {
+        return res.status(400).json({ Error: "This Url can't be Empty!!" });
+    }
+
+    const newComments = {
+        socialUrlLink: req.body.socialUrlLink,
+        socialtype: req.body.socialtype
+    }
+
+    db.doc(`/userSocialMediaUrl/${req.params.socialMediaId}`).update(newComments).then(() => {
+        return res.json({ success: "Succvessfully updated!" })
+    }).catch(err => {
+        console.log(err)
+        return res.status(500).json({ Error: err.code })
+    })
+}
+
+// delete social media of a profile
+exports.deleteSocialMediaOfProfile = (req, res) => {
+    const subProfilDocument = db.doc(`/userSocialMediaUrl/${req.params.profilId}`);
+    subProfilDocument.get().then((doc) => {
+        if (!doc.exists) {
+            return res.status(404).json({ Error: "Social Media Not Found!!" });
+        }
+        if (doc.data().genralUserId !== req.user.genralUserId) {
+            return res.status(403).json({ Error: "don't have permission to delete socialMedia  !!" })
+        } else {
+            return subProfilDocument.delete();
+        }
+
+    }).then(() => {
+        return res.json({ Mesaj: "Profile Successfully deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
+
+//

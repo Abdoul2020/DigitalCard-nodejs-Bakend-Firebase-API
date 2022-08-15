@@ -165,3 +165,94 @@ exports.validateLoginWithCardUrl = ((data) => {
     }
 
 })
+
+
+// kontrol and change genral user data
+exports.reduceGeneralUserInfo = (data) => {
+    let infoData = {}
+
+    if (!isEmpty(data.birthDate.trim())) {
+        infoData.birthDate = data.birthDate
+    }
+    //infoData.birthDate = data.birthDate
+
+    //website linki
+    // if (!isEmpty(data.website.trim())) {
+    //     //https:website.com
+    //     if (data.website.trim().substring(0, 4) !== "http") {
+    //         kuldtails.website = `http://${data.website.trim()}`;
+
+    //     } else {
+    //         kuldtails.website = data.website
+    //     }
+
+    // }
+
+
+    if (!isEmpty(data.gender.trim())) {
+        infoData.gender = data.gender
+    }
+
+    //infoData.gender = data.gender
+
+    if (!isEmpty(data.phoneNumber.trim())) {
+        infoData.phoneNumber = data.phoneNumber
+    }
+    //infoData.phoneNumber = data.phoneNumber
+
+    if (!isEmpty(data.publicName.trim())) {
+        infoData.publicName = data.publicName
+    }
+    if (!isEmpty(data.publicSurname.trim())) {
+        infoData.publicSurname = data.publicSurname
+    }
+    if (!isEmpty(data.userHandleName.trim())) {
+        infoData.userHandleName = data.userHandleName
+    }
+
+    return infoData;
+
+}
+
+// kontrol and change single user data
+exports.reduceSingleUserInfo = (data) => {
+    let infoData = {}
+
+    if (!isEmpty(data.profileEmail.trim())) {
+        infoData.profileEmail = data.profileEmail
+    }
+
+    if (!isEmpty(data.phoneNumber.trim())) {
+        infoData.phoneNumber = data.phoneNumber
+    }
+
+    if (!isEmpty(data.profilDescription.trim())) {
+        infoData.profilDescription = data.profilDescription
+    }
+    if (!isEmpty(data.publicName.trim())) {
+        infoData.publicName = data.publicName
+    }
+    if (!isEmpty(data.publicSurName.trim())) {
+        infoData.publicSurName = data.publicSurName
+    }
+    if (!isEmpty(data.profileAdres.trim())) {
+        infoData.profileAdres = data.profileAdres
+    }
+
+    if (!isEmpty(data.profileCompany.trim())) {
+        infoData.profileCompany = data.profileCompany
+    }
+    if (!isEmpty(data.profileTag.trim())) {
+        infoData.profileTag = data.profileTag
+    }
+    if (!isEmpty(data.telNumber.trim())) {
+        infoData.telNumber = data.telNumber
+    }
+
+    if (!isEmpty(data.position.trim())) {
+        infoData.position = data.position
+    }
+
+    return infoData;
+
+}
