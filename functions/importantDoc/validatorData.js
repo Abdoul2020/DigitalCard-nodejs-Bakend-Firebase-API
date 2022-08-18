@@ -256,3 +256,26 @@ exports.reduceSingleUserInfo = (data) => {
     return infoData;
 
 }
+
+//dark theme change
+exports.reduceDarkMokAktif = (data) => {
+    let darkOrLight = {}
+        //gece Modu
+    if (!isEmpty(data.profileTheme.trim())) {
+        darkOrLight.profileTheme = data.profileTheme
+    }
+
+    return darkOrLight;
+
+}
+
+exports.reducePositionOfSocail = (data) => {
+    let socialPositionMedia = {}
+        //gece Modu
+    if (!isEmpty(data.placeOfSocialMediaPosition.trim())) {
+        socialPositionMedia.placeOfSocialMediaPosition = data.placeOfSocialMediaPosition
+    }
+
+    return socialPositionMedia;
+
+}

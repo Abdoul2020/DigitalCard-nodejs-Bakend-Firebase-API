@@ -7,7 +7,7 @@ const firebase = require("firebase");
 firebase.initializeApp(firebaseConfig);
 
 
-const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, validateLoginWithCardUrl } = require("../importantDoc/validatorData");
+const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reduceDarkMokAktif, reducePositionOfSocail } = require("../importantDoc/validatorData");
 
 
 exports.registerClass = (req, res) => {
@@ -449,11 +449,12 @@ exports.addSubProfile = (req, res) => {
         profileCompany: "",
         profilDescription: "",
         profileEmail: "",
-        profileTheme: true,
+        profileTheme: false,
         publicName: "",
         publicSurName: "",
         statusMode: true,
         statusOfUrl: true,
+        placeOfSocialMediaPosition: "top",
         telNumber: "",
         position: "",
         profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
@@ -755,6 +756,8 @@ exports.singleUserInfo = (req, res) => {
                 profileCompany: doc.data().profileCompany,
                 profileEmail: doc.data().profileEmail,
                 profileTheme: doc.data().profileTheme,
+                placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
+                position: doc.data().position,
                 statusOfUrl: doc.data().statusOfUrl
             })
         })
@@ -825,6 +828,8 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 profileCompany: doc.data().profileCompany,
                 profileEmail: doc.data().profileEmail,
                 profileTheme: doc.data().profileTheme,
+                placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
+                position: doc.data().position,
                 statusOfUrl: doc.data().statusOfUrl
             })
         })
@@ -882,6 +887,7 @@ exports.getAuthenticatedUser = ((req, res) => {
                 generalUserId: doc.data().generalUserId,
                 publicName: doc.data().publicName,
                 position: doc.data().position,
+                placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
                 profileId: doc.id
             });
         })
@@ -1119,7 +1125,6 @@ exports.uploadFilePdf = (req, res) => {
     const fs = require("fs")
 
 
-
     const busboy = BusBoy({ headers: req.headers })
 
     let imageFileName;
@@ -1233,4 +1238,28 @@ exports.getpanelInfFromHere = (req, res) => {
 
 
 
+}
+
+//dark theme or Light
+//geceModu
+exports.darkThemeOrLight = (req, res) => {
+
+    let darkModu = reduceDarkMokAktif(req.body);
+    db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update(darkModu).then(() => {
+        return res.json({ Mesaj: "template theme changed!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+// position of social media on view
+exports.positionOfSocialMedia = (req, res) => {
+    let positionSocial = reducePositionOfSocail(req.body);
+    db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update(positionSocial).then(() => {
+        return res.json({ Mesaj: "position of social media changed!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
 }

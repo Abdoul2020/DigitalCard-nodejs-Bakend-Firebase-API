@@ -32,7 +32,9 @@ const {
     postBanInfopanel,
     uploadFilePdf,
     getpanelInfFromHere,
-    backgorundImageChange
+    backgorundImageChange,
+    darkThemeOrLight,
+    positionOfSocialMedia
 } = require("./handlers/userActions")
 
 const {
@@ -78,13 +80,17 @@ app.post("/cardLinkAdd", FBAuth, cardLinkRandomAdd); //create card Link Url
 app.post("/newSocialUrlAdd/:profileId", FBAuth, socialUrlAdd) //add social url link
 app.post("/facebookUrlAdd", FBAuth, facebookUrlAdd) //facebook url add here
 
+app.post("/themeChange/:profileId", FBAuth, darkThemeOrLight); //dark or Light theme
+app.post("/ChangesocialPosition/:profileId", FBAuth, positionOfSocialMedia)
+
 app.post("/uploadProfile/:profileId", FBAuth, uploadProfile); //upload profile from dashboard
 app.post("/uploadFileDoucment/:profileId", FBAuth, uploadFilePdf) //UPLOAD FİLE DOCUMENT
-app.post("/uploadBackgroundmage/:profileId", FBAuth, backgorundImageChange) //change the background ImagebackgorundImageChange
+app.post("/uploadBackgroundImage/:profileId", FBAuth, backgorundImageChange) //change the background ImagebackgorundImageChange
 
 app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user Info
 app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
 app.post("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
+
 
 
 //create contact data of profile
@@ -97,7 +103,7 @@ app.post("/bankAddData/:profileId", FBAuth, postBanInfopanel)
 app.get("/user/:userHandleName", singleUserInfo); //get all data with  Name.
 app.get("/userid/:userId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
 
-app.get("/panelData/:profileId", getpanelInfFromHere); //get data of panel
+app.get("/panelData/:profileId", FBAuth, getpanelInfFromHere); //get data of panel
 
 //user Info get with authenticated
 app.get("/userAuthData", FBAuth, getAuthenticatedUser);
