@@ -21,77 +21,89 @@ exports.registerClass = (req, res) => {
         confirmPassword: req.body.confirmPassword
     }
 
-    const { valid, hatalar } = validateSignUpData(newPersonInfo);
+    const { valid, allErrors } = validateSignUpData(newPersonInfo);
 
     if (!valid) {
-        return res.status(400).json({ hatalar });
+        return res.status(400).json({ allErrors });
     }
 
     // the Image will bbe in hold for some second
-    const defaultImage = "no-img.png"
-    const backImag = "back-img.jpg"
-        //const checkUserHandleName = db.collection("userGeneral").where("userHandleName", "==", req.body.userHandleName)
+    //const defaultImage = "no-img.png"
+    //const backImag = "back-img.jpg"
+    //const checkUserHandleName = db.collection("userGeneral").where("userHandleName", "==", req.body.userHandleName)
 
     let generalToken
     let generalUserId
 
-    db.doc(`/userGeneral/${newPersonInfo.eMail}`).get().then(doc => {
-        if (doc.exists) {
-            return res.status(400).json({ eMailAccountExist: "This Email has already registered" });
-        } else {
+    singleUserData = {}
+    db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName).get().then((data) => {
+        singleUserData.dataInfo = [];
+        data.forEach(doc => {
+            singleUserData.dataInfo.push(
+                doc.data())
+        })
 
-            db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName).get().then(() => {
-                console.log("ayanı kullanıcı adı var")
-            })
+    }).then(() => {
 
-            //console.log("huytyh", db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName).get())
 
-            if (db.collection("userGeneral").where("userHandleName", "==", newPersonInfo.userHandleName)) {
-                return res.status(400).json({ userHandleExist: "This userHandleName has already registered" });
+        if (singleUserData.dataInfo.length > 0 && singleUserData.dataInfo[0].userHandleName == newPersonInfo.userHandleName) {
+            return res.status(400).json({ userHabdleExist: "This userHandle has already registered" });
+
+        }
+        console.log("isism kontrtolu:", singleUserData.dataInfo)
+
+    }).then(() => {
+
+        console.log("hata girmiyor")
+
+        db.doc(`/userGeneral/${newPersonInfo.eMail}`).get().then((doc) => {
+
+            if (doc.exists) {
+                return res.status(400).json({ eMailAccountExist: "This Email has already registered" });
             } else {
 
                 return firebase.auth().createUserWithEmailAndPassword(newPersonInfo.eMail, newPersonInfo.password);
 
             }
 
-        }
+        }).then((data) => {
+            generalUserId = data.user.uid;
+            return data.user.getIdToken();
 
-    }).then((data) => {
-        generalUserId = data.user.uid;
-        return data.user.getIdToken();
-    }).then((tokenReceived) => {
-        generalToken = tokenReceived
+        }).then((tokenReceived) => {
+            generalToken = tokenReceived
 
 
-        const userCredentials = {
-            eMail: newPersonInfo.eMail,
-            publicName: newPersonInfo.publicName,
-            publicSurname: newPersonInfo.publicSurname,
-            generalUserId,
-            userHandleName: newPersonInfo.userHandleName,
-            startDateCount: new Date().toISOString(),
-            birthDate: "",
-            phoneNumber: "",
-            gender: "",
-            cardPairing: ""
-        }
+            const userCredentials = {
+                eMail: newPersonInfo.eMail,
+                publicName: newPersonInfo.publicName,
+                publicSurname: newPersonInfo.publicSurname,
+                generalUserId,
+                userHandleName: newPersonInfo.userHandleName,
+                startDateCount: new Date().toISOString(),
+                birthDate: "",
+                phoneNumber: "",
+                gender: 0,
+                cardPairing: ""
+            }
 
-        // profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
-        // backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages%2F${backImag}?alt=media`,
+            return db.doc(`/userGeneral/${newPersonInfo.eMail}`).set(userCredentials);
 
-        return db.doc(`/userGeneral/${newPersonInfo.eMail}`).set(userCredentials);
+        }).then(() => {
+            res.status(201).json({ generalToken });
+        }).catch((err) => {
+            console.error(err);
+            if (err.code == "auth/email-already-in-use") {
+                return res.status(400).json({ Error: "This Email is already in use...!" })
+            } else if (err.code == "auth/weak-password") {
+                return res.status(400).json({ Error: "password must be at least 6 charachter!" })
+            } else {
+                return res.status(500).json({ GeneralError: "Something went wrong with the backend, please try again!!" })
+            }
+        })
 
-    }).then(() => {
-        res.status(201).json({ generalToken });
     }).catch((err) => {
-        console.error(err);
-        if (err.code == "auth/email-already-in-use") {
-            return res.status(400).json({ Error: "This Email is already in use...!" })
-        } else if (err.code == "auth/weak-password") {
-            return res.status(400).json({ Error: "password must be at least 6 charachter!" })
-        } else {
-            return res.status(500).json({ GeneralError: "Something went wrong with the backend, please try again!!" })
-        }
+        res.status(400).json({ errorHere: "error here" })
     })
 
 }
@@ -311,12 +323,12 @@ exports.uploadProfile = (req, res) => {
                 }
             }
         }).then(() => {
-            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${imageFileName}?alt=media`;
-            if (req.user.secretKod) {
-                db.doc(`/cardUrlLinks/${req.user.secretKod}`).update({ profileUrl: imageUrlUploaded })
-            }
+            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
+            // if (req.user.secretKod) {
+            //     db.doc(`/cardUrlLinks/${req.user.secretKod}`).update({ profileUrl: imageUrlUploaded })
+            // }
 
-            return (db.doc(`/userGeneral/${req.user.eMail}`).update({ profileUrl: imageUrlUploaded }));
+            return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ profileUrl: imageUrlUploaded }));
         }).then(() => {
             return res.json({ mesaj: "Image Successfully Updated" });
         }).catch(err => {
@@ -331,11 +343,93 @@ exports.uploadProfile = (req, res) => {
 }
 
 
+//upload Background Images
+exports.backgorundImageChange = (req, res) => {
+    const BusBoy = require("busboy")
+    const path = require("path")
+    const os = require("os")
+    const fs = require("fs")
+
+    const busboy = BusBoy({ headers: req.headers })
+
+    let imageFileName;
+    let imageToBeUploaded = {};
+
+
+    busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+
+        if (Object.values(filename)[2] !== "image/jpeg" && Object.values(filename)[2] !== "image/png") {
+            return res.status(400).json({ err: "The Image Format should be  png or jpeg!!" })
+        }
+
+
+        const trueFile = Object.values(filename)[0]
+
+        const imageExtension = trueFile.split(".")[trueFile.split(".").length - 1];
+
+        console.log("Extension here: ", imageExtension);
+
+        //transform the image took here to another format: example,83475834895.png
+        imageFileName = `${Math.round(
+            Math.random() * 1000000000000
+          ).toString()}.${imageExtension}`;
+        const filePath = path.join(os.tmpdir(), imageFileName);
+
+        imageToBeUploaded = { filePath, mimetype }
+
+        //to create the file
+        file.pipe(fs.createWriteStream(filePath));
+    });
+    busboy.on("finish", () => {
+        admin.storage().bucket().upload(imageToBeUploaded.filePath, {
+
+            resumable: false,
+            metadata: {
+                metadata: {
+                    contentType: imageToBeUploaded.mimetype
+                }
+            }
+        }).then(() => {
+            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
+
+
+            let userProfile = {}
+            const allpanelProfile = db.collection("profilesOfGeneralUser").where("generalUserId", "==", req.user.generalUserId)
+            allpanelProfile.get().then((data) => {
+                userProfile.profileInfo = []
+                data.forEach((doc) => {
+                    userProfile.profileInfo.push({
+                        generalUserId: doc.data().generalUserId,
+                        profileId: doc.id
+                    });
+                })
+            }).then(() => {
+                if (userProfile.profileInfo[0].generalUserId == req.user.generalUserId) {
+                    return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ backgorundImage: imageUrlUploaded }));
+                } else {
+                    return res.status(400).json({ Error: "No permission" })
+                }
+            }).then(() => {
+                return res.json({ mesaj: "Backgorund successfully changed" });
+            }).catch((err) => {
+                return res.json(err)
+            })
+        }).catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code })
+        })
+    });
+
+    busboy.end(req.rawBody);
+
+}
+
+
 // add the subProfile 
 exports.addSubProfile = (req, res) => {
 
     defaultImage = "no-img.png",
-        backImag = "back-img.png"
+        backImag = "back-img.jpg"
 
     let orderOfProfile = 0;
     if (req.body.profileTag.trim() === "") {
@@ -386,22 +480,25 @@ exports.addSubProfile = (req, res) => {
                     });
                     //     return res.json(allgenraluserIdCount)
                 }).then(() => {
-                    if (allgenraluserIdCount.length <= 5) {
+                    if (allgenraluserIdCount.length >= 6) {
                         ///return db.doc(`/profilesOfGeneralUser/${req.user.generalUserId}`).set(newProfileAdd);
-                        return db.collection("profilesOfGeneralUser").add(newProfileAdd);
-                    } else {
                         console.log("Sorry you account has reach the limit of profile")
-                            //return res.json({ fullAccount: "Sorry you account has reach the limit of profile" })
+                        return res.json({ fullAccount: "Sorry you account has reach the limit of profile" })
+
+                    } else {
+                        return db.collection("profilesOfGeneralUser").add(newProfileAdd);
                     }
-                }).catch(err => {
+
+                }).then(() => {
+                    return res.json(newProfileAdd)
+                })
+                .catch(err => {
                     console.error(err)
                         //return res.status(500).json({ fullAccount: "Sorry you account has reach the limit of profile" })
                 })
                 // return db.collection("profilesOfGeneralUser").add(newProfileAdd);
                 //res.json(allgenraluserIdCount.length)
         }
-    }).then(() => {
-        res.json(newProfileAdd)
     }).catch((err) => {
         console.log(err)
         return res.status(500).json({
@@ -765,8 +862,28 @@ exports.getAuthenticatedUser = ((req, res) => {
         userDataInfo.profileofGeneralUser = []
 
         data.forEach((doc) => {
-            userDataInfo.profileofGeneralUser.push(doc.data());
-            userDataInfo.profileId = userDataInfo.profileofGeneralUser.push({ profileId: doc.id })
+            userDataInfo.profileofGeneralUser.push({
+
+                publicSurName: doc.data().publicSurName,
+                profileUrl: doc.data().profileUrl,
+                profilDescription: doc.data().profilDescription,
+                customUrl: doc.data().customUrl,
+                phoneNumber: doc.data().phoneNumber,
+                backgorundImage: doc.data().backgorundImage,
+                profileTag: doc.data().profileTag,
+                eMail: doc.data().eMail,
+                profileAdres: doc.data().profileAdres,
+                profileCompany: doc.data().profileCompany,
+                telNumber: doc.data().telNumber,
+                profileEmail: doc.data().profileEmail,
+                statusOfUrl: doc.data().statusOfUrl,
+                orderOfProfile: doc.data().orderOfProfile,
+                dateofCreation: doc.data().dateofCreation,
+                generalUserId: doc.data().generalUserId,
+                publicName: doc.data().publicName,
+                position: doc.data().position,
+                profileId: doc.id
+            });
         })
 
     }).then(() => {
@@ -780,6 +897,8 @@ exports.getAuthenticatedUser = ((req, res) => {
 
 
 
+
+
 //all SubAccount get
 exports.getAllSubprofileOfGeneralUser = ((req, res) => {
         let subUserDataInfo = {}
@@ -788,12 +907,33 @@ exports.getAllSubprofileOfGeneralUser = ((req, res) => {
 
         allSubprofile.get().then((data) => {
             subUserDataInfo.personalInfo = []
-
+            console.log("hatalar ehere")
             data.forEach((doc) => {
-                subUserDataInfo.personalInfo.push(doc.data());
-                subUserDataInfo.profileId = subUserDataInfo.personalInfo.push({ SubprofileId: doc.id })
+                subUserDataInfo.personalInfo.push({
+                    eMail: doc.data().eMail,
+                    profileTag: doc.data().profileTag,
+                    customUrl: doc.data().customUrl,
+                    dateofCreation: doc.data().dateofCreation,
+                    publicSurName: doc.data().publicSurName,
+                    profilDescription: doc.data().profilDescription,
+                    profileAdres: doc.data().profileAdres,
+                    profileEmail: doc.data().profileEmail,
+                    backgorundImage: doc.data().backgorundImage,
+                    profileCompany: doc.data().profileCompany,
+                    generalUserId: doc.data().generalUserId,
+                    profileTheme: doc.data().profileTheme,
+                    statusOfUrl: doc.data().statusOfUrl,
+                    publicName: doc.data().publicName,
+                    orderOfProfile: doc.data().orderOfProfile,
+                    phoneNumber: doc.data().phoneNumber,
+                    telNumber: doc.data().telNumber,
+                    statusMode: doc.data().statusMode,
+                    profileUrl: doc.data().profileUrl,
+                    SubprofileId: doc.id
+                });
             })
         }).then(() => {
+            console.log("veiler:", subUserDataInfo)
             return res.json(subUserDataInfo)
         }).catch(() => {
             return res.status(400).json({ errorgetSuprofile: "error wihle..." })
@@ -905,4 +1045,192 @@ exports.deleteSocialMediaOfProfile = (req, res) => {
     })
 }
 
-//
+//panel contact Info register
+exports.postContactInfopanel = (req, res) => {
+
+
+    if (req.body.profileCountry.trim() == "") {
+        return res.status(400).json({ Body: "you need to choose a country !!" })
+    }
+    if (req.body.profileCity.trim() == "") {
+        return res.status(400).json({ Body: "you need to choose a city !!" })
+    }
+
+    const createContact = {
+        publicName: req.body.publicName,
+        publicsurname: req.body.publicsurname,
+        publicOrganization: req.body.publicOrganization,
+        profilePosition: req.body.profilePosition,
+        kurumsalTelefon: req.body.kurumsalTelefon,
+        kisiselTelefon: req.body.kisiselTelefon,
+        kurumsalEmail: req.body.kurumsalEmail,
+        bireyselEmail: req.body.bireyselEmail,
+        streetAdress: req.body.streetAdress,
+        profileCountry: req.body.profileCountry,
+        profileCity: req.body.profileCity,
+        profileNot: req.body.profileNot,
+        profileId: req.params.profileId
+    }
+    db.collection("contactData").add(createContact).then((data) => {
+        const resScream = createContact
+        resScream.contactDataId = data.id
+        res.json({ resScream });
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+
+        console.error(err)
+    })
+}
+
+// panel Bank Info register
+
+exports.postBanInfopanel = (req, res) => {
+
+    if (req.body.bankName.trim() == "") {
+        return res.status(400).json({ Body: "you need to write a bank Name !!" })
+    }
+    if (req.body.bankIban.trim() == "") {
+        return res.status(400).json({ Body: "you need to write bank Iban !!" })
+    }
+
+    const createBank = {
+        accountOwner: req.body.accountOwner,
+        bankName: req.body.bankName,
+        bankStation: req.body.bankStation,
+        bankIban: req.body.bankIban,
+        profileId: req.params.profileId
+    }
+    db.collection("bankData").add(createBank).then((data) => {
+        const resScream = createBank
+        resScream.bankId = data.id
+        res.json({ resScream });
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+
+        console.error(err)
+    })
+}
+
+//belge yükle register
+exports.uploadFilePdf = (req, res) => {
+    const BusBoy = require("busboy")
+    const path = require("path")
+    const os = require("os")
+    const fs = require("fs")
+
+
+
+    const busboy = BusBoy({ headers: req.headers })
+
+    let imageFileName;
+    let imageToBeUploaded = {};
+
+
+    busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+
+        // if (Object.values(filename)[2] !== "image/jpeg" && Object.values(filename)[2] !== "image/png") {
+        //     return res.status(400).json({ err: "Fotoğraf  png yada jpeg formatı olmak zorunda!!" })
+        // }
+
+        const trueFile = Object.values(filename)[0]
+
+        const imageExtension = trueFile.split(".")[trueFile.split(".").length - 1];
+
+        console.log("Extension here: ", imageExtension);
+
+        imageFileName = `${Math.round(
+            Math.random() * 1000000000000
+          ).toString()}.${imageExtension}`;
+        const filePath = path.join(os.tmpdir(), imageFileName);
+        console.log("filePath:", filePath)
+
+        imageToBeUploaded = { filePath, mimetype }
+
+        //to create the file
+        file.pipe(fs.createWriteStream(filePath));
+
+
+    });
+    busboy.on("finish", () => {
+        admin.storage().bucket().upload(imageToBeUploaded.filePath, {
+            resumable: false,
+            metadata: {
+                metadata: {
+                    contentType: imageToBeUploaded.mimetype
+                }
+            }
+        }).then(() => {
+            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
+            // if (req.user.secretKod){
+            //     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded })
+            // }
+            return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded }));
+
+        }).then(() => {
+            return res.json({ mesaj: "File Successfully Updated" });
+        }).catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code })
+        })
+
+    });
+
+    busboy.end(req.rawBody);
+
+}
+
+//exports get Bank Info
+
+exports.getpanelInfFromHere = (req, res) => {
+
+    let panelDataInfo = {}
+
+    const allpanelProfile = db.collection("bankData").where("profileId", "==", req.params.profileId)
+
+    allpanelProfile.get().then((data) => {
+        panelDataInfo.bankDataInfo = []
+        data.forEach((doc) => {
+            panelDataInfo.bankDataInfo.push({
+                accountOwner: doc.data().accountOwner,
+                bankIban: doc.data().bankIban,
+                bankName: doc.data().bankName,
+                bankStation: doc.data().bankStation,
+                profileId: doc.data().profileId,
+                BankDataId: doc.id
+            });
+        })
+
+        return db.collection("contactData").where("profilId", "==", req.params.profileId).get();
+
+    }).then((data) => {
+        panelDataInfo.contactDataInfo = []
+
+        data.forEach((doc) => {
+            panelDataInfo.contactDataInfo.push({
+                bireyselEmail: doc.data().bireyselEmail,
+                kisiselTelefon: doc.data().kisiselTelefon,
+                kurumsalEmail: doc.data().kurumsalEmail,
+                profilId: doc.data().profilId,
+                profileCity: doc.data().profileCity,
+                profileCountry: doc.data().profileCountry,
+                profileNot: doc.data().profileNot,
+                profilePosition: doc.data().profilePosition,
+                publicName: doc.data().publicName,
+                publicOrganization: doc.data().publicOrganization,
+                publicsurname: doc.data().publicsurname,
+                streetAdress: doc.data().streetAdress,
+                contactDataId: doc.id
+
+            });
+        })
+
+    }).then(() => {
+        console.log("veiler:", panelDataInfo)
+        return res.json(panelDataInfo)
+    }).catch(() => {
+        return res.status(400).json({ errorgetPanel: "error wihle getting panel" })
+    })
+
+
+
+}

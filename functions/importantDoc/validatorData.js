@@ -26,26 +26,26 @@ exports.validateSignUpData = (data) => {
 
     // check if the data is Empty
 
-    let hatalar = {} //hataların objesi
+    let allErrors = {} //hataların objesi
 
     if (isEmpty(data.eMail)) {
 
-        hatalar.eMail = "E-mail can't be Empty, Please recheck";
+        allErrors.eMail = "E-mail can't be Empty, Please recheck";
 
     } else if (!isEmail(data.eMail)) {
-        hatalar.eMail = "Please Enter a valid Email!"
+        allErrors.eMailFormat = "Please Enter a valid Email!"
     }
 
     if (isEmpty(data.publicName)) {
-        hatalar.publicName = "Enter Your Name"
+        allErrors.publicName = "Enter Your Name"
     }
 
     if (isEmpty(data.publicSurname)) {
-        hatalar.publicSurname = "Enter Your SurName"
+        allErrors.publicSurname = "Enter Your SurName"
     }
 
     if (isEmpty(data.password)) {
-        hatalar.password = "Can't be Empty"
+        allErrors.password = "Can't be Empty"
     }
 
 
@@ -57,15 +57,15 @@ exports.validateSignUpData = (data) => {
 
 
     if (data.password !== data.confirmPassword) {
-        hatalar.confirmPassword = "Passwords dont match!"
+        allErrors.confirmPassword = "Passwords dont match!"
     }
     if (isEmpty(data.userHandleName)) {
-        hatalar.userHandleName = "Can't be Empty!"
+        allErrors.userHandleName = "Can't be Empty!"
     }
 
     return {
-        hatalar,
-        valid: Object.keys(hatalar).length === 0 ? true : false
+        allErrors,
+        valid: Object.keys(allErrors).length === 0 ? true : false
     }
 
 }
