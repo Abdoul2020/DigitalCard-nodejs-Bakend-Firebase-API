@@ -189,9 +189,11 @@ exports.reduceGeneralUserInfo = (data) => {
     // }
 
 
-    if (!isEmpty(data.gender.trim())) {
-        infoData.gender = data.gender
-    }
+    // if (!isEmpty(data.gender.trim())) {
+    //     infoData.gender = data.gender
+    // }
+
+    infoData.gender = data.gender
 
     //infoData.gender = data.gender
 

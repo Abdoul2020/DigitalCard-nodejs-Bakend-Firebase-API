@@ -17,6 +17,7 @@ const {
     facebookUrlAdd,
     uploadProfile,
     ClickUrlCardLink,
+    ClickProfileLink,
     deleteUser,
     singleUserInfo,
     singleUserInfoWithgeneraluserId,
@@ -39,6 +40,7 @@ const {
 
 const {
     getAllUser,
+    getAllProfileClickDate,
 
     getAllDateOfAuser
 } = require("./handlers/dataBack")
@@ -89,7 +91,7 @@ app.post("/uploadBackgroundImage/:profileId", FBAuth, backgorundImageChange) //c
 
 app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user Info
 app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
-app.post("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
+app.put("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
 
 
 
@@ -111,13 +113,17 @@ app.get("/userAuthData", FBAuth, getAuthenticatedUser);
 // delete user
 app.delete("/deleteUser", FBAuth, deleteUser);
 app.delete("/deleteProfile/:profilId", FBAuth, deleteSingleProfile);
-app.delete("/deleteSocialMediaofProfile/:profilId", FBAuth, deleteSocialMediaOfProfile);
+app.delete("/deleteSocialMediaofProfile/:socialMediaId", FBAuth, deleteSocialMediaOfProfile);
 
 
 //All userbring
 app.get("/allUser", getAllUser);
+
 app.get("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
-app.get("/getallDateofClick", FBAuth, getAllDateOfAuser)
+app.get("/clickProfile/:profileId/add", ClickProfileLink);
+
+app.get("/getallDateofClick", FBAuth, getAllDateOfAuser);
+app.get("/getAllDateofProfileClick/:profileId", FBAuth, getAllProfileClickDate);
 
 //subprofile
 app.get("/getAllProfile", FBAuth, getAllSubprofileOfGeneralUser)

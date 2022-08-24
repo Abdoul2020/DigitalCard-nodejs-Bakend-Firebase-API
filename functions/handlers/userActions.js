@@ -449,7 +449,7 @@ exports.addSubProfile = (req, res) => {
         profileCompany: "",
         profilDescription: "",
         profileEmail: "",
-        profileTheme: false,
+        profileTheme: "light",
         publicName: "",
         publicSurName: "",
         statusMode: true,
@@ -563,7 +563,8 @@ exports.socialUrlAdd = (req, res) => {
         eMail: req.user.eMail,
         generalUserId: req.user.generalUserId,
         profileId: req.params.profileId,
-        statuMode: true
+        statuMode: true,
+        socialOrder: req.body.socialOrder,
     }
 
     db.collection("userSocialMediaUrl").add(newComments).then(() => {
@@ -598,7 +599,7 @@ exports.facebookUrlAdd = (req, res) => {
 }
 
 
-// count when click link here on Date
+// count when click link here on Date from general User
 exports.ClickUrlCardLink = (req, res) => {
 
     const cardUrlidDocument = db.doc(`/cardUrlLinks/${req.params.cardlinkid}`);
@@ -610,11 +611,12 @@ exports.ClickUrlCardLink = (req, res) => {
         if (doc.exists) {
             cardLinkData = doc.data()
             cardLinkData.urlcardId = doc.id
-            return cardUrlClcikDate.get()
+                //return cardUrlClcikDate.get()
+            return db.doc(`/cardUrlDate/${cardLinkData.generalUserId}`).get()
         } else {
             return res.status(400).json({ Error: "card url not found !!" })
         }
-    }).then((data) => {
+    }).then((doc) => {
 
         const neCredentials = {
             cardlinkid: req.params.cardlinkid,
@@ -622,7 +624,7 @@ exports.ClickUrlCardLink = (req, res) => {
             genralUserId: cardLinkData.generalUserId,
             eMail: cardLinkData.eMail
         }
-        if (db.collection(`${cardLinkData.generalUserId}`)) {
+        if (doc.exists) {
             console.log("buaraya girdi")
             db.doc(`/cardUrlDate/${cardLinkData.generalUserId}`).update({
                 clickDate: admin.firestore.FieldValue.arrayUnion(new Date().toISOString())
@@ -632,6 +634,54 @@ exports.ClickUrlCardLink = (req, res) => {
         } else {
             console.log("buraya girmeedi")
             db.doc(`/cardUrlDate/${cardLinkData.generalUserId}`).set(neCredentials).then(() => {
+                return res.json({ Ok: "succesfully added" })
+            })
+
+
+        }
+    }).catch(err => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//count when click profile from here
+exports.ClickProfileLink = (req, res) => {
+
+    const cardUrlidDocument = db.doc(`/profilesOfGeneralUser/${req.params.profileId}`);
+
+    cardUrlClcikDate = db.collection("cartProfileDate")
+
+
+    let cardLinkData
+    cardUrlidDocument.get().then(doc => {
+        if (doc.exists) {
+            cardLinkData = doc.data()
+            cardLinkData.urlProfilecardId = doc.id
+                //return cardUrlClcikDate.get()
+            return db.doc(`/cartProfileDate/${cardLinkData.urlProfilecardId}`).get()
+        } else {
+            return res.status(400).json({ Error: "card url not found !!" })
+        }
+    }).then((doc) => {
+
+        const neCredentials = {
+            cardlinkid: req.params.profileId,
+            clickDate: [new Date().toISOString()],
+            genralUserId: cardLinkData.generalUserId,
+            eMail: cardLinkData.eMail,
+            profileId: cardLinkData.urlProfilecardId
+        }
+        if (doc.exists) {
+            console.log("buaraya girdi")
+            db.doc(`/cartProfileDate/${cardLinkData.urlProfilecardId}`).update({
+                clickDate: admin.firestore.FieldValue.arrayUnion(new Date().toISOString())
+            }).then(() => {
+                return res.json({ Ok: "succesfully added" })
+            })
+        } else {
+            console.log("buraya girmeedi")
+            db.doc(`/cartProfileDate/${cardLinkData.urlProfilecardId}`).set(neCredentials).then(() => {
                 return res.json({ Ok: "succesfully added" })
             })
 
@@ -887,6 +937,7 @@ exports.getAuthenticatedUser = ((req, res) => {
                 generalUserId: doc.data().generalUserId,
                 publicName: doc.data().publicName,
                 position: doc.data().position,
+                profileTheme: doc.data().profileTheme,
                 placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
                 profileId: doc.id
             });
@@ -955,7 +1006,7 @@ exports.updateGeneralUserData = (req, res) => {
     let infoToChange = reduceGeneralUserInfo(req.body);
     db.doc(`/userGeneral/${req.user.eMail}`).update(infoToChange).then(() => {
 
-        return res.json({ success: "Succvessfully updated!" })
+        return res.json({ success: "Successfully updated!" })
 
     }).catch((err) => {
         console.error(err)
@@ -964,7 +1015,7 @@ exports.updateGeneralUserData = (req, res) => {
 
     if (req.user.secretKod) {
         db.doc(`/cardUrlLinks/${req.user.secretKod}`).update(infoToChange).then(() => {
-            return res.json({ Mesaj: "Succvessfully updated!!" })
+            return res.json({ Mesaj: "Successfully updated!!" })
         }).catch((err) => {
             console.error(err)
             return res.status(500).json({ err: err.code })
@@ -996,7 +1047,16 @@ exports.getallSocialMediaofSingleprofile = ((req, res) => {
         socialMedia.allsocial = []
 
         data.forEach((doc) => {
-            socialMedia.allsocial.push(doc.data());
+            socialMedia.allsocial.push({
+                eMail: doc.data().eMail,
+                socialtype: doc.data().socialtype,
+                socialUrlLink: doc.data().socialUrlLink,
+                profileId: doc.data().profileId,
+                statuMode: doc.data().statuMode,
+                generalUserId: doc.data().generalUserId,
+                socialMediaUrlId: doc.id,
+                socialOrder: doc.data().socialOrder
+            });
         })
     }).then(() => {
         return res.json(socialMedia)
@@ -1019,7 +1079,9 @@ exports.socialUrlUpdate = (req, res) => {
 
     const newComments = {
         socialUrlLink: req.body.socialUrlLink,
-        socialtype: req.body.socialtype
+        socialtype: req.body.socialtype,
+        statuMode: req.body.statuMode,
+        socialOrder: req.body.socialOrder
     }
 
     db.doc(`/userSocialMediaUrl/${req.params.socialMediaId}`).update(newComments).then(() => {
@@ -1032,7 +1094,7 @@ exports.socialUrlUpdate = (req, res) => {
 
 // delete social media of a profile
 exports.deleteSocialMediaOfProfile = (req, res) => {
-    const subProfilDocument = db.doc(`/userSocialMediaUrl/${req.params.profilId}`);
+    const subProfilDocument = db.doc(`/userSocialMediaUrl/${req.params.socialMediaId}`);
     subProfilDocument.get().then((doc) => {
         if (!doc.exists) {
             return res.status(404).json({ Error: "Social Media Not Found!!" });
@@ -1075,7 +1137,11 @@ exports.postContactInfopanel = (req, res) => {
         profileCountry: req.body.profileCountry,
         profileCity: req.body.profileCity,
         profileNot: req.body.profileNot,
-        profileId: req.params.profileId
+        profileId: req.params.profileId,
+        isOpen: false,
+        isDeleteOpen: false,
+        type: "conatctAddForm"
+
     }
     db.collection("contactData").add(createContact).then((data) => {
         const resScream = createContact
@@ -1083,7 +1149,6 @@ exports.postContactInfopanel = (req, res) => {
         res.json({ resScream });
     }).catch((err) => {
         res.status(500).json({ error: "something went wrong!!" });
-
         console.error(err)
     })
 }
@@ -1093,7 +1158,9 @@ exports.postContactInfopanel = (req, res) => {
 exports.postBanInfopanel = (req, res) => {
 
     if (req.body.bankName.trim() == "") {
+
         return res.status(400).json({ Body: "you need to write a bank Name !!" })
+
     }
     if (req.body.bankIban.trim() == "") {
         return res.status(400).json({ Body: "you need to write bank Iban !!" })
@@ -1104,15 +1171,19 @@ exports.postBanInfopanel = (req, res) => {
         bankName: req.body.bankName,
         bankStation: req.body.bankStation,
         bankIban: req.body.bankIban,
-        profileId: req.params.profileId
+        profileId: req.params.profileId,
+        isOpen: false,
+        isDeleteOpen: false,
+        OrderId: 0,
+        type: "bankform"
     }
     db.collection("bankData").add(createBank).then((data) => {
+
         const resScream = createBank
         resScream.bankId = data.id
         res.json({ resScream });
     }).catch((err) => {
         res.status(500).json({ error: "something went wrong!!" });
-
         console.error(err)
     })
 }
@@ -1185,14 +1256,16 @@ exports.uploadFilePdf = (req, res) => {
 }
 
 //exports get Bank Info
-
 exports.getpanelInfFromHere = (req, res) => {
 
     let panelDataInfo = {}
 
     const allpanelProfile = db.collection("bankData").where("profileId", "==", req.params.profileId)
 
+    let countId = 0
+
     allpanelProfile.get().then((data) => {
+
         panelDataInfo.bankDataInfo = []
         data.forEach((doc) => {
             panelDataInfo.bankDataInfo.push({
@@ -1201,17 +1274,19 @@ exports.getpanelInfFromHere = (req, res) => {
                 bankName: doc.data().bankName,
                 bankStation: doc.data().bankStation,
                 profileId: doc.data().profileId,
-                BankDataId: doc.id
+                BankDataId: doc.id,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: countId++
             });
         })
 
-        return db.collection("contactData").where("profilId", "==", req.params.profileId).get();
+        return db.collection("contactData").where("profileId", "==", req.params.profileId).get();
 
     }).then((data) => {
-        panelDataInfo.contactDataInfo = []
-
         data.forEach((doc) => {
-            panelDataInfo.contactDataInfo.push({
+            panelDataInfo.bankDataInfo.push({
                 bireyselEmail: doc.data().bireyselEmail,
                 kisiselTelefon: doc.data().kisiselTelefon,
                 kurumsalEmail: doc.data().kurumsalEmail,
@@ -1224,8 +1299,11 @@ exports.getpanelInfFromHere = (req, res) => {
                 publicOrganization: doc.data().publicOrganization,
                 publicsurname: doc.data().publicsurname,
                 streetAdress: doc.data().streetAdress,
-                contactDataId: doc.id
-
+                contactDataId: doc.id,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: countId++
             });
         })
 

@@ -42,4 +42,23 @@ exports.getAllDateOfAuser = (req, res) => {
     })
 }
 
-//delete user from system.
+//get all profile date click
+exports.getAllProfileClickDate = (req, res) => {
+
+    const dateodUserClick = db.collection("cartProfileDate").where("profileId", "==", req.params.profileId);
+
+    dateodUserClick.get().then((data) => {
+        let allUser = [];
+        data.forEach((doc) => {
+            allUser.push({
+                generalUserId: doc.data().genralUserId,
+                dateofClick: doc.data().clickDate,
+                profileId: doc.data().profileId
+            })
+        });
+        return res.json({ allClcickCount: allUser })
+    }).catch(err => {
+        console.error(err)
+    })
+
+}
