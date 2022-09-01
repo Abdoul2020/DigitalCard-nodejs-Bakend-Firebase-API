@@ -45,18 +45,15 @@ exports.getAllDateOfAuser = (req, res) => {
 //get all profile date click
 exports.getAllProfileClickDate = (req, res) => {
 
-    const dateodUserClick = db.collection("cartProfileDate").where("profileId", "==", req.params.profileId);
+    const dateodUserClick = db.doc(`/cartProfileDate/${req.params.profileId}`);
 
-    dateodUserClick.get().then((data) => {
-        let allUser = [];
-        data.forEach((doc) => {
-            allUser.push({
-                generalUserId: doc.data().genralUserId,
-                dateofClick: doc.data().clickDate,
-                profileId: doc.data().profileId
-            })
-        });
-        return res.json({ allClcickCount: allUser })
+    dateodUserClick.get().then((doc) => {
+
+        const allUser = doc.data()
+
+        console.log("data:", doc.data())
+
+        return res.json({ allUser })
     }).catch(err => {
         console.error(err)
     })

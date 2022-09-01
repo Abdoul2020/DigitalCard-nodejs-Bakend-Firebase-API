@@ -255,6 +255,8 @@ exports.reduceSingleUserInfo = (data) => {
         infoData.position = data.position
     }
 
+    infoData.orderOfProfile = data.orderOfProfile
+
     return infoData;
 
 }
@@ -279,5 +281,163 @@ exports.reducePositionOfSocail = (data) => {
     }
 
     return socialPositionMedia;
+
+}
+
+
+//bank Info
+exports.reduceBankInfo = (data) => {
+    let bankDatadtails = {}
+        //accountOwner
+    if (!isEmpty(data.accountOwner.trim())) {
+        bankDatadtails.accountOwner = data.accountOwner
+    }
+
+    //bankIban
+    if (!isEmpty(data.bankIban.trim())) {
+        bankDatadtails.bankIban = data.bankIban
+    }
+    //bankName
+    if (!isEmpty(data.bankName.trim())) {
+        bankDatadtails.bankName = data.bankName
+    }
+    //bank station
+    if (!isEmpty(data.bankStation.trim())) {
+        bankDatadtails.bankStation = data.bankStation
+    }
+
+    return bankDatadtails;
+
+}
+
+//bank StatusMode
+exports.reduceBankStatusMode = () => {
+
+    let bankDatadtails = {}
+        //bank station
+    bankDatadtails.statueMode = data.statueMode
+
+    return bankDatadtails;
+}
+
+//contyactData Info  reduceContactInfo
+
+exports.reduceContactInfo = (data) => {
+    let contactDatadtails = {}
+
+    if (!isEmpty(data.publicName.trim())) {
+        contactDatadtails.publicName = data.publicName
+    }
+
+
+    if (!isEmpty(data.publicsurname.trim())) {
+        contactDatadtails.publicsurname = data.publicsurname
+    }
+
+    if (!isEmpty(data.publicOrganization.trim())) {
+        contactDatadtails.publicOrganization = data.publicOrganization
+    }
+
+
+    if (!isEmpty(data.profilePosition.trim())) {
+        contactDatadtails.profilePosition = data.profilePosition
+    }
+
+    if (!isEmpty(data.kurumsalTelefon.trim())) {
+        contactDatadtails.kurumsalTelefon = data.kurumsalTelefon
+    }
+
+    if (!isEmpty(data.kisiselTelefon.trim())) {
+        contactDatadtails.kisiselTelefon = data.kisiselTelefon
+    }
+
+    if (!isEmpty(data.kurumsalEmail.trim())) {
+        contactDatadtails.kurumsalEmail = data.kurumsalEmail
+    }
+
+    if (!isEmpty(data.kisiselEmail.trim())) {
+        contactDatadtails.kisiselEmail = data.kisiselEmail
+    }
+
+    if (!isEmpty(data.streetAdress.trim())) {
+        contactDatadtails.streetAdress = data.streetAdress
+    }
+
+    if (!isEmpty(data.profileCountry.trim())) {
+        contactDatadtails.profileCountry = data.profileCountry
+    }
+
+    if (!isEmpty(data.profileCity.trim())) {
+        contactDatadtails.profileCity = data.profileCity
+    }
+
+    if (!isEmpty(data.profileNot.trim())) {
+        contactDatadtails.profileNot = data.profileNot
+    }
+
+    return contactDatadtails;
+
+}
+
+// reduce document reduceDocumentInfo
+exports.reduceDocumentInfo = (data) => {
+    let documentDatadtails = {}
+
+    if (!isEmpty(data.emailToSend.trim())) {
+        documentDatadtails.emailToSend = data.emailToSend
+    }
+
+
+    documentDatadtails.statusNameSurname = data.statusNameSurname
+
+    documentDatadtails.statusEmail = data.statusEmail
+
+    documentDatadtails.statusTelefon = data.statusTelefon
+
+    documentDatadtails.statusMessage = data.statusMessage
+
+
+
+    if (!isEmpty(data.publicstreetAdress.trim())) {
+        documentDatadtails.publicstreetAdress = data.publicstreetAdress
+    }
+
+    if (!isEmpty(data.publicDropNot.trim())) {
+        documentDatadtails.publicDropNot = data.publicDropNot
+    }
+
+    return documentDatadtails;
+
+}
+
+exports.reducekulFatura = (data) => {
+    let userProfileFaturatails = {}
+
+    //vergi Number
+    if (!isEmpty(data.vergiNumber.trim())) {
+        userProfileFaturatails.vergiNumber = data.vergiNumber
+    }
+    //vergi dairesi Administration
+    if (!isEmpty(data.taxAdministration.trim())) {
+        userProfileFaturatails.taxAdministration = data.taxAdministration
+    }
+    //Fırma Status
+    if (!isEmpty(data.companyStatus.trim())) {
+        userProfileFaturatails.companyStatus = data.companyStatus
+    }
+    //ofis mail
+    if (!isEmpty(data.ofisMaili.trim())) {
+        userProfileFaturatails.ofisMaili = data.ofisMaili
+    }
+    //Ofis PhoneNumber
+    if (!isEmpty(data.ofisPhoneNumber.trim())) {
+        userProfileFaturatails.ofisPhoneNumber = data.ofisPhoneNumber
+    }
+    //Location
+    if (!isEmpty(data.location.trim())) {
+        userProfileFaturatails.location = data.location
+    }
+
+    return userProfileFaturatails;
 
 }

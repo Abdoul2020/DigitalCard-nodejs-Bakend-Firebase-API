@@ -22,6 +22,7 @@ module.exports = (req, res, next) => {
                 req.user.generalUserId = data.docs[0].data().generalUserId;
                 req.user.eMail = data.docs[0].data().eMail;
                 req.user.secretKod = data.docs[0].data().secretKod;
+                req.user.passUnknown = data.docs[0].data().passUnknown;
                 return next()
             }).catch(err => {
                 console.error("Error while checking token", err);

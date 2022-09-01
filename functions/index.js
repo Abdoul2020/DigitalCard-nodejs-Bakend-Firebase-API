@@ -35,7 +35,15 @@ const {
     getpanelInfFromHere,
     backgorundImageChange,
     darkThemeOrLight,
-    positionOfSocialMedia
+    positionOfSocialMedia,
+    updateBankInfo,
+    updateStattuModeBank,
+    postDocumentInfopanel,
+    updateDocumentFormInfo,
+    updateContactInfo,
+    uploadFilePdfChange,
+    FaturaInfoData,
+    parolaChangeOfUser
 } = require("./handlers/userActions")
 
 const {
@@ -87,17 +95,27 @@ app.post("/ChangesocialPosition/:profileId", FBAuth, positionOfSocialMedia)
 
 app.post("/uploadProfile/:profileId", FBAuth, uploadProfile); //upload profile from dashboard
 app.post("/uploadFileDoucment/:profileId", FBAuth, uploadFilePdf) //UPLOAD FİLE DOCUMENT
+app.put("/changeUploadImage/:fileUploadDocumentId", FBAuth, uploadFilePdfChange)
 app.post("/uploadBackgroundImage/:profileId", FBAuth, backgorundImageChange) //change the background ImagebackgorundImageChange
+app.post("/AddBillInfoData/:profileId", FBAuth, FaturaInfoData); //fatura Info Data
 
 app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user Info
 app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
 app.put("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
+app.put("/bankdataUpdate/:bankDataId", FBAuth, updateBankInfo); //update bank Info  updateContactInfo
+app.put("/changeStatusModeOfBank/:bankDataId", FBAuth, updateStattuModeBank)
+app.put("/contactdataUpdate/:conatctDataId", FBAuth, updateContactInfo); //update contact data   updateDocumentFormInfo
+app.put("/documentdataUpdate/:documentDatId", FBAuth, updateDocumentFormInfo) //update document form from here
+
 
 
 
 //create contact data of profile
 app.post("/conatctAddData/:profileId", FBAuth, postContactInfopanel)
 app.post("/bankAddData/:profileId", FBAuth, postBanInfopanel)
+app.post("/documentData/:profileId", FBAuth, postDocumentInfopanel) //POST DOCUMENT
+app.post("/changegePassword", FBAuth, parolaChangeOfUser) //change Passworrd
+
 
 
 
@@ -119,8 +137,8 @@ app.delete("/deleteSocialMediaofProfile/:socialMediaId", FBAuth, deleteSocialMed
 //All userbring
 app.get("/allUser", getAllUser);
 
-app.get("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
-app.get("/clickProfile/:profileId/add", ClickProfileLink);
+app.post("/clickUrlDate/:cardlinkid/add", ClickUrlCardLink);
+app.post("/clickProfile/:profileId/add", ClickProfileLink);
 
 app.get("/getallDateofClick", FBAuth, getAllDateOfAuser);
 app.get("/getAllDateofProfileClick/:profileId", FBAuth, getAllProfileClickDate);

@@ -7,11 +7,11 @@ const firebase = require("firebase");
 firebase.initializeApp(firebaseConfig);
 
 
-const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reduceDarkMokAktif, reducePositionOfSocail } = require("../importantDoc/validatorData");
+const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reducekulFatura, reduceDarkMokAktif, reduceBankStatusMode, reducePositionOfSocail, reduceDocumentInfo, reduceBankInfo, reduceContactInfo } = require("../importantDoc/validatorData");
+const { user } = require("firebase-functions/v1/auth");
 
 
 exports.registerClass = (req, res) => {
-
     const newPersonInfo = {
         eMail: req.body.eMail,
         publicName: req.body.publicName,
@@ -295,17 +295,22 @@ exports.uploadProfile = (req, res) => {
             return res.status(400).json({ err: "Fotoğraf  png yada jpeg formatı olmak zorunda!!" })
         }
 
+
+
+
         const trueFile = Object.values(filename)[0]
 
         const imageExtension = trueFile.split(".")[trueFile.split(".").length - 1];
 
         console.log("Extension here: ", imageExtension);
+        console.log("fle size uzunluk:", file.length)
 
         imageFileName = `${Math.round(
             Math.random() * 1000000000000
           ).toString()}.${imageExtension}`;
+
         const filePath = path.join(os.tmpdir(), imageFileName);
-        console.log("filePath:", filePath)
+        console.log("filePath:", filePath);
 
         imageToBeUploaded = { filePath, mimetype }
 
@@ -437,13 +442,14 @@ exports.addSubProfile = (req, res) => {
     }
 
 
+
     const newProfileAdd = {
         profileTag: req.body.profileTag,
         generalUserId: req.user.uid,
         eMail: req.user.eMail,
         customUrl: "",
         dateofCreation: new Date().toISOString(),
-        orderOfProfile,
+        orderOfProfile: req.body.orderOfProfile,
         phoneNumber: "",
         profileAdres: "",
         profileCompany: "",
@@ -939,7 +945,13 @@ exports.getAuthenticatedUser = ((req, res) => {
                 position: doc.data().position,
                 profileTheme: doc.data().profileTheme,
                 placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
-                profileId: doc.id
+                profileId: doc.id,
+                vergiNumber: doc.data().vergiNumber,
+                taxAdministration: doc.data().taxAdministration,
+                companyStatus: doc.data().companyStatus,
+                ofisMaili: doc.data().ofisMaili,
+                ofisPhoneNumber: doc.data().ofisPhoneNumber,
+                location: doc.data().location
             });
         })
 
@@ -1120,6 +1132,7 @@ exports.postContactInfopanel = (req, res) => {
     if (req.body.profileCountry.trim() == "") {
         return res.status(400).json({ Body: "you need to choose a country !!" })
     }
+
     if (req.body.profileCity.trim() == "") {
         return res.status(400).json({ Body: "you need to choose a city !!" })
     }
@@ -1132,12 +1145,13 @@ exports.postContactInfopanel = (req, res) => {
         kurumsalTelefon: req.body.kurumsalTelefon,
         kisiselTelefon: req.body.kisiselTelefon,
         kurumsalEmail: req.body.kurumsalEmail,
-        bireyselEmail: req.body.bireyselEmail,
+        kisiselEmail: req.body.kisiselEmail,
         streetAdress: req.body.streetAdress,
         profileCountry: req.body.profileCountry,
         profileCity: req.body.profileCity,
         profileNot: req.body.profileNot,
         profileId: req.params.profileId,
+        statueMode: true,
         isOpen: false,
         isDeleteOpen: false,
         type: "conatctAddForm"
@@ -1174,6 +1188,7 @@ exports.postBanInfopanel = (req, res) => {
         profileId: req.params.profileId,
         isOpen: false,
         isDeleteOpen: false,
+        statueMode: true,
         OrderId: 0,
         type: "bankform"
     }
@@ -1188,7 +1203,44 @@ exports.postBanInfopanel = (req, res) => {
     })
 }
 
-//belge yükle register
+
+//post document to data where to send
+
+exports.postDocumentInfopanel = (req, res) => {
+    if (req.body.emailToSend.trim() == "") {
+
+        return res.status(400).json({ Body: "you need to write a bank Name !!" })
+
+    }
+
+    const createDocument = {
+        statusNameSurname: req.body.statusNameSurname,
+        statusEmail: req.body.statusEmail,
+        statusTelefon: req.body.statusTelefon,
+        statusMessage: req.body.statusMessage,
+        profileId: req.params.profileId,
+        emailToSend: req.body.emailToSend,
+        publicstreetAdress: req.body.publicstreetAdress,
+        publicDropNot: req.body.publicDropNot,
+        OrderId: 0,
+        statueMode: true,
+        isOpen: false,
+        isDeleteOpen: false,
+        type: "documentForm"
+    }
+    db.collection("documentDataForm").add(createDocument).then((data) => {
+
+        const resScream = createDocument
+        resScream.doncumentDataId = data.id
+        res.json({ resScream });
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+        console.error(err)
+    })
+}
+
+
+//belge yükle register Panel
 exports.uploadFilePdf = (req, res) => {
     const BusBoy = require("busboy")
     const path = require("path")
@@ -1240,7 +1292,102 @@ exports.uploadFilePdf = (req, res) => {
             // if (req.user.secretKod){
             //     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded })
             // }
-            return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded }));
+
+            const fileUploadInfo = {
+                belgeDocument: imageUrlUploaded,
+                isOpen: false,
+                isDeleteOpen: false,
+                statueMode: true,
+                OrderId: 0,
+                profileId: req.params.profileId,
+                type: "uploadFileDocument"
+
+
+            }
+            return db.collection("fileUploadDocument").add(fileUploadInfo)
+
+            //return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded }));
+
+        }).then(() => {
+            return res.json({ mesaj: "File Successfully Updated" });
+        }).catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code })
+        })
+
+    });
+
+    busboy.end(req.rawBody);
+
+}
+
+//belgeyi yenle
+exports.uploadFilePdfChange = (req, res) => {
+    const BusBoy = require("busboy")
+    const path = require("path")
+    const os = require("os")
+    const fs = require("fs")
+
+
+    const busboy = BusBoy({ headers: req.headers })
+
+    let imageFileName;
+    let imageToBeUploaded = {};
+
+
+    busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+
+        // if (Object.values(filename)[2] !== "image/jpeg" && Object.values(filename)[2] !== "image/png") {
+        //     return res.status(400).json({ err: "Fotoğraf  png yada jpeg formatı olmak zorunda!!" })
+        // }
+
+        const trueFile = Object.values(filename)[0]
+
+        const imageExtension = trueFile.split(".")[trueFile.split(".").length - 1];
+
+        console.log("Extension here: ", imageExtension);
+
+        imageFileName = `${Math.round(
+            Math.random() * 1000000000000
+          ).toString()}.${imageExtension}`;
+        const filePath = path.join(os.tmpdir(), imageFileName);
+        console.log("filePath:", filePath)
+
+        imageToBeUploaded = { filePath, mimetype }
+
+        //to create the file
+        file.pipe(fs.createWriteStream(filePath));
+
+
+    });
+    busboy.on("finish", () => {
+        admin.storage().bucket().upload(imageToBeUploaded.filePath, {
+            resumable: false,
+            metadata: {
+                metadata: {
+                    contentType: imageToBeUploaded.mimetype
+                }
+            }
+        }).then(() => {
+            const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
+            // if (req.user.secretKod){
+            //     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded })
+            // }
+
+            // const fileUploadInfo = {
+            //     belgeDocument: imageUrlUploaded,
+            //     isOpen: false,
+            //     isDeleteOpen: false,
+            //     statueMode: true,
+            //     OrderId: 0,
+            //     profileId: req.params.profileId,
+            //     type: "uploadFileDocument"
+
+
+            // }
+            //return db.collection("fileUploadDocument").add(fileUploadInfo)
+
+            return (db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).update({ belgeDocument: imageUrlUploaded }));
 
         }).then(() => {
             return res.json({ mesaj: "File Successfully Updated" });
@@ -1275,6 +1422,7 @@ exports.getpanelInfFromHere = (req, res) => {
                 bankStation: doc.data().bankStation,
                 profileId: doc.data().profileId,
                 BankDataId: doc.id,
+                statueMode: doc.data().statueMode,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
@@ -1287,7 +1435,7 @@ exports.getpanelInfFromHere = (req, res) => {
     }).then((data) => {
         data.forEach((doc) => {
             panelDataInfo.bankDataInfo.push({
-                bireyselEmail: doc.data().bireyselEmail,
+                kisiselEmail: doc.data().kisiselEmail,
                 kisiselTelefon: doc.data().kisiselTelefon,
                 kurumsalEmail: doc.data().kurumsalEmail,
                 profilId: doc.data().profilId,
@@ -1299,11 +1447,51 @@ exports.getpanelInfFromHere = (req, res) => {
                 publicOrganization: doc.data().publicOrganization,
                 publicsurname: doc.data().publicsurname,
                 streetAdress: doc.data().streetAdress,
+                statueMode: doc.data().statueMode,
                 contactDataId: doc.id,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
                 OrderId: countId++
+            });
+        })
+
+        return db.collection("documentDataForm").where("profileId", "==", req.params.profileId).get();
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            panelDataInfo.bankDataInfo.push({
+                statusNameSurname: doc.data().statusNameSurname,
+                statusEmail: doc.data().statusEmail,
+                statusTelefon: doc.data().statusTelefon,
+                statusMessage: doc.data().statusMessage,
+                emailToSend: doc.data().emailToSend,
+                publicstreetAdress: doc.data().publicstreetAdress,
+                publicDropNot: doc.data().publicDropNot,
+                OrderId: countId++,
+                type: doc.data().type,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                documentDataFormId: doc.id,
+                statueMode: doc.data().statueMode
+            });
+        })
+        return db.collection("fileUploadDocument").where("profileId", "==", req.params.profileId).get();
+    }).then((data) => {
+
+
+        console.log("veri gridi:::")
+        data.forEach((doc) => {
+
+            panelDataInfo.bankDataInfo.push({
+                belgeDocument: doc.data().belgeDocument,
+                belgeDocumentId: doc.id,
+                OrderId: countId++,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode
+
             });
         })
 
@@ -1317,6 +1505,51 @@ exports.getpanelInfFromHere = (req, res) => {
 
 
 }
+
+// update bank Info
+exports.updateBankInfo = (req, res) => {
+    let bankbilgi = reduceBankInfo(req.body);
+    db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
+
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+
+// update ContactData Info
+exports.updateContactInfo = (req, res) => {
+    let contactbilgi = reduceContactInfo(req.body);
+    db.doc(`/contactData/${req.params.conatctDataId}`).update(contactbilgi).then(() => {
+
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+///UPDATE Document from here
+exports.updateDocumentFormInfo = (req, res) => {
+
+    let documentFormbilgi = reduceDocumentInfo(req.body);
+    db.doc(`/documentDataForm/${req.params.documentDatId}`).update(documentFormbilgi).then(() => {
+
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+
 
 //dark theme or Light
 //geceModu
@@ -1340,4 +1573,82 @@ exports.positionOfSocialMedia = (req, res) => {
         console.error(err)
         return res.status(500).json({ err: err.code })
     })
+}
+
+
+// update StauMode Bank
+exports.updateStattuModeBank = (req, res) => {
+    let bankbilgi = reduceBankStatusMode(req.body);
+
+    db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+
+//Fatura Information
+
+exports.FaturaInfoData = (req, res) => {
+    let userProfileData = reducekulFatura(req.body);
+    db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update(userProfileData).then(() => {
+
+        return res.json({ Mesaj: "Please enter the right Informations!" })
+
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//change Password from 
+exports.parolaChangeOfUser = (req, res) => {
+
+    const userInfoProfile = {
+        oldpassword: req.body.oldpassword,
+        newPassword: req.body.newPassword,
+        confirmNewpassword: req.body.confirmNewpassword,
+        eMail: req.user.eMail
+    }
+
+    console.log("data here:", req.user)
+
+
+
+
+
+    if (userInfoProfile.newPassword != userInfoProfile.confirmNewpassword) {
+
+        return res.status(400).json({ Mesaj: "Password are not conformed!!" })
+
+    } else {
+
+        firebase.auth().signInWithEmailAndPassword(req.user.eMail, userInfoProfile.oldpassword).then((data) => {
+
+            admin.auth().updateUser(req.user.uid, {
+                    emailVerified: true,
+                    password: userInfoProfile.newPassword
+
+                }).then((userRecord) => {
+                    // See the UserRecord reference doc for the contents of userRecord.
+                    // console.log('Successfully updated user', userRecord.toJSON());
+                    return res.status(200).json({ Success: "SuccesFully Change Password!!" })
+
+                })
+                .catch((error) => {
+                    console.log('Error updating user:', error);
+                    return res.status(500).json({ Fail: error })
+                });
+
+        }).catch(() => {
+
+            return res.status(201).json({ Mesaj: "This password does'nt exist!!" })
+
+        })
+
+
+    }
 }
