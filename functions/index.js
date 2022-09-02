@@ -42,7 +42,7 @@ const {
     updateDocumentFormInfo,
     updateContactInfo,
     uploadFilePdfChange,
-    FaturaInfoData,
+    BillInfoData,
     parolaChangeOfUser
 } = require("./handlers/userActions")
 
@@ -97,13 +97,13 @@ app.post("/uploadProfile/:profileId", FBAuth, uploadProfile); //upload profile f
 app.post("/uploadFileDoucment/:profileId", FBAuth, uploadFilePdf) //UPLOAD FİLE DOCUMENT
 app.put("/changeUploadImage/:fileUploadDocumentId", FBAuth, uploadFilePdfChange)
 app.post("/uploadBackgroundImage/:profileId", FBAuth, backgorundImageChange) //change the background ImagebackgorundImageChange
-app.post("/AddBillInfoData/:profileId", FBAuth, FaturaInfoData); //fatura Info Data
+app.post("/AddBillInfoData/:profileId", FBAuth, BillInfoData); //fatura Info Data
 
 app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user Info
 app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
 app.put("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
 app.put("/bankdataUpdate/:bankDataId", FBAuth, updateBankInfo); //update bank Info  updateContactInfo
-app.put("/changeStatusModeOfBank/:bankDataId", FBAuth, updateStattuModeBank)
+app.put("/changeStatusModeOfBank/:bankDataId", FBAuth, updateStattuModeBank) //update status bank here
 app.put("/contactdataUpdate/:conatctDataId", FBAuth, updateContactInfo); //update contact data   updateDocumentFormInfo
 app.put("/documentdataUpdate/:documentDatId", FBAuth, updateDocumentFormInfo) //update document form from here
 
@@ -115,6 +115,7 @@ app.post("/conatctAddData/:profileId", FBAuth, postContactInfopanel)
 app.post("/bankAddData/:profileId", FBAuth, postBanInfopanel)
 app.post("/documentData/:profileId", FBAuth, postDocumentInfopanel) //POST DOCUMENT
 app.post("/changegePassword", FBAuth, parolaChangeOfUser) //change Passworrd
+
 
 
 

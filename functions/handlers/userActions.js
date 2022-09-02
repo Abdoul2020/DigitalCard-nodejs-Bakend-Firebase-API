@@ -7,7 +7,7 @@ const firebase = require("firebase");
 firebase.initializeApp(firebaseConfig);
 
 
-const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reducekulFatura, reduceDarkMokAktif, reduceBankStatusMode, reducePositionOfSocail, reduceDocumentInfo, reduceBankInfo, reduceContactInfo } = require("../importantDoc/validatorData");
+const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reducekulBill, reduceDarkMokAktif, reduceBankStatusMode, reducePositionOfSocail, reduceDocumentInfo, reduceBankInfo, reduceContactInfo } = require("../importantDoc/validatorData");
 const { user } = require("firebase-functions/v1/auth");
 
 
@@ -436,7 +436,7 @@ exports.addSubProfile = (req, res) => {
     defaultImage = "no-img.png",
         backImag = "back-img.jpg"
 
-    let orderOfProfile = 0;
+
     if (req.body.profileTag.trim() === "") {
         return res.status(400).json({ Error: "This field can't be empty!!" });
     }
@@ -1592,8 +1592,8 @@ exports.updateStattuModeBank = (req, res) => {
 
 //Fatura Information
 
-exports.FaturaInfoData = (req, res) => {
-    let userProfileData = reducekulFatura(req.body);
+exports.BillInfoData = (req, res) => {
+    let userProfileData = reducekulBill(req.body);
     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update(userProfileData).then(() => {
 
         return res.json({ Mesaj: "Please enter the right Informations!" })

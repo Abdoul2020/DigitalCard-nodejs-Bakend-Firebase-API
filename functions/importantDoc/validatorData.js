@@ -311,7 +311,7 @@ exports.reduceBankInfo = (data) => {
 }
 
 //bank StatusMode
-exports.reduceBankStatusMode = () => {
+exports.reduceBankStatusMode = (data) => {
 
     let bankDatadtails = {}
         //bank station
@@ -410,7 +410,7 @@ exports.reduceDocumentInfo = (data) => {
 
 }
 
-exports.reducekulFatura = (data) => {
+exports.reducekulBill = (data) => {
     let userProfileFaturatails = {}
 
     //vergi Number
