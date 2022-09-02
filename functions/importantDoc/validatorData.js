@@ -411,33 +411,33 @@ exports.reduceDocumentInfo = (data) => {
 }
 
 exports.reducekulBill = (data) => {
-    let userProfileFaturatails = {}
+    let userProfileBilltails = {}
 
     //vergi Number
     if (!isEmpty(data.vergiNumber.trim())) {
-        userProfileFaturatails.vergiNumber = data.vergiNumber
+        userProfileBilltails.vergiNumber = data.vergiNumber
     }
     //vergi dairesi Administration
     if (!isEmpty(data.taxAdministration.trim())) {
-        userProfileFaturatails.taxAdministration = data.taxAdministration
+        userProfileBilltails.taxAdministration = data.taxAdministration
     }
     //Fırma Status
     if (!isEmpty(data.companyStatus.trim())) {
-        userProfileFaturatails.companyStatus = data.companyStatus
+        userProfileBilltails.companyStatus = data.companyStatus
     }
     //ofis mail
     if (!isEmpty(data.ofisMaili.trim())) {
-        userProfileFaturatails.ofisMaili = data.ofisMaili
+        userProfileBilltails.ofisMaili = data.ofisMaili
     }
     //Ofis PhoneNumber
     if (!isEmpty(data.ofisPhoneNumber.trim())) {
-        userProfileFaturatails.ofisPhoneNumber = data.ofisPhoneNumber
+        userProfileBilltails.ofisPhoneNumber = data.ofisPhoneNumber
     }
     //Location
     if (!isEmpty(data.location.trim())) {
-        userProfileFaturatails.location = data.location
+        userProfileBilltails.location = data.location
     }
 
-    return userProfileFaturatails;
+    return userProfileBilltails;
 
 }
