@@ -414,8 +414,8 @@ exports.reducekulBill = (data) => {
     let userProfileBilltails = {}
 
     //vergi Number
-    if (!isEmpty(data.vergiNumber.trim())) {
-        userProfileBilltails.vergiNumber = data.vergiNumber
+    if (!isEmpty(data.taxNumber.trim())) {
+        userProfileBilltails.taxNumber = data.taxNumber
     }
     //vergi dairesi Administration
     if (!isEmpty(data.taxAdministration.trim())) {
@@ -426,8 +426,8 @@ exports.reducekulBill = (data) => {
         userProfileBilltails.companyStatus = data.companyStatus
     }
     //ofis mail
-    if (!isEmpty(data.ofisMaili.trim())) {
-        userProfileBilltails.ofisMaili = data.ofisMaili
+    if (!isEmpty(data.officeEmail.trim())) {
+        userProfileBilltails.officeEmail = data.officeEmail
     }
     //Ofis PhoneNumber
     if (!isEmpty(data.ofisPhoneNumber.trim())) {
@@ -435,7 +435,9 @@ exports.reducekulBill = (data) => {
     }
     //Location
     if (!isEmpty(data.location.trim())) {
+
         userProfileBilltails.location = data.location
+
     }
 
     return userProfileBilltails;
