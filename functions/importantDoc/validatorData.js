@@ -430,8 +430,8 @@ exports.reducekulBill = (data) => {
         userProfileBilltails.officeEmail = data.officeEmail
     }
     //Ofis PhoneNumber
-    if (!isEmpty(data.ofisPhoneNumber.trim())) {
-        userProfileBilltails.ofisPhoneNumber = data.ofisPhoneNumber
+    if (!isEmpty(data.officePhoneNumber.trim())) {
+        userProfileBilltails.officePhoneNumber = data.officePhoneNumber
     }
     //Location
     if (!isEmpty(data.location.trim())) {
