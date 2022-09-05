@@ -38,12 +38,17 @@ const {
     positionOfSocialMedia,
     updateBankInfo,
     updateStattuModeBank,
+    updateStattuModeContact,
+    updateStattuModeDocumentToChange,
     postDocumentInfopanel,
     updateDocumentFormInfo,
     updateContactInfo,
     uploadFilePdfChange,
     BillInfoData,
-    parolaChangeOfUser
+    parolaChangeOfUser,
+    updateOrderOfBank,
+    updateStattuModeFileUploadToView,
+    passwordForget
 } = require("./handlers/userActions")
 
 const {
@@ -90,6 +95,9 @@ app.post("/cardLinkAdd", FBAuth, cardLinkRandomAdd); //create card Link Url
 app.post("/newSocialUrlAdd/:profileId", FBAuth, socialUrlAdd) //add social url link
 app.post("/facebookUrlAdd", FBAuth, facebookUrlAdd) //facebook url add here
 
+//reset password forget
+app.post("/resetPasswordForget", passwordForget) //password forget mail sent
+
 app.post("/themeChange/:profileId", FBAuth, darkThemeOrLight); //dark or Light theme
 app.post("/ChangesocialPosition/:profileId", FBAuth, positionOfSocialMedia)
 
@@ -103,9 +111,18 @@ app.put("/user/updateUser", FBAuth, updateGeneralUserData); //update genral user
 app.put("/updateProfile/:profilId", FBAuth, updateSingleUserData); //single profile update
 app.put("/updateSocialMediaUrl/:socialMediaId", FBAuth, socialUrlUpdate) //updated social   media data
 app.put("/bankdataUpdate/:bankDataId", FBAuth, updateBankInfo); //update bank Info  updateContactInfo
-app.put("/changeStatusModeOfBank/:bankDataId", FBAuth, updateStattuModeBank) //update status bank here
+app.put("/changeStatusModeOfBank/:bankDataId", FBAuth, updateStattuModeBank) //update status bank here 
+app.put("/changeStatusModeOfContact/:contactDataId", FBAuth, updateStattuModeContact) //update contact Mode statatue   
+
+app.put("/changeStatusModeOfDocument/:documentDataFormId", FBAuth, updateStattuModeDocumentToChange) //update document statusMode   
+app.put("/changeStatusModeOfFileUpload/:belgeDocumentId", FBAuth, updateStattuModeFileUploadToView) //update File Upload here  
+
+app.put("/changeOrdreIdOfBank/:bankDataId", FBAuth, updateOrderOfBank) //update order of Id Bank
+
+
 app.put("/contactdataUpdate/:conatctDataId", FBAuth, updateContactInfo); //update contact data   updateDocumentFormInfo
 app.put("/documentdataUpdate/:documentDatId", FBAuth, updateDocumentFormInfo) //update document form from here
+
 
 
 

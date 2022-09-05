@@ -320,6 +320,48 @@ exports.reduceBankStatusMode = (data) => {
     return bankDatadtails;
 }
 
+// contact statuMode contact
+exports.reduceContactStatusMode = (data) => {
+
+    let contactDatadtails = {}
+        //bank station
+    contactDatadtails.statueMode = data.statueMode
+
+    return contactDatadtails;
+
+}
+
+//Document to Change  reduceDocumentStatusMode
+exports.reduceDocumentStatusMode = (data) => {
+    let documentDatadtails = {}
+        //bank station
+    documentDatadtails.statueMode = data.statueMode
+
+    return documentDatadtails;
+
+}
+
+//statusMode of FileUpload here 
+
+exports.reduceFileUploadToStatusMode = (data) => {
+    let fileUploadDatadtails = {}
+        //bank station
+    fileUploadDatadtails.statueMode = data.statueMode
+    return fileUploadDatadtails;
+
+}
+
+//orderOfBank Id reduceOrderIdofBank
+exports.reduceOrderIdofBank = (data) => {
+    let orderOfBankDatadtails = {}
+        //bank station
+    orderOfBankDatadtails.OrderId = data.OrderId
+    return orderOfBankDatadtails;
+
+}
+
+
+
 //contyactData Info  reduceContactInfo
 
 exports.reduceContactInfo = (data) => {
@@ -414,32 +456,45 @@ exports.reducekulBill = (data) => {
     let userProfileBilltails = {}
 
     //vergi Number
-    if (!isEmpty(data.taxNumber.trim())) {
-        userProfileBilltails.taxNumber = data.taxNumber
-    }
+
+    userProfileBilltails.taxNumber = data.taxNumber
+
     //vergi dairesi Administration
-    if (!isEmpty(data.taxAdministration.trim())) {
-        userProfileBilltails.taxAdministration = data.taxAdministration
-    }
+
+    userProfileBilltails.taxAdministration = data.taxAdministration
+
     //Fırma Status
-    if (!isEmpty(data.companyStatus.trim())) {
-        userProfileBilltails.companyStatus = data.companyStatus
-    }
+
+    userProfileBilltails.companyStatus = data.companyStatus
+
     //ofis mail
-    if (!isEmpty(data.officeEmail.trim())) {
-        userProfileBilltails.officeEmail = data.officeEmail
-    }
+
+    userProfileBilltails.officeEmail = data.officeEmail
+
     //Ofis PhoneNumber
-    if (!isEmpty(data.officePhoneNumber.trim())) {
-        userProfileBilltails.officePhoneNumber = data.officePhoneNumber
-    }
+
+    userProfileBilltails.officePhoneNumber = data.officePhoneNumber
+
     //Location
-    if (!isEmpty(data.location.trim())) {
 
-        userProfileBilltails.location = data.location
+    userProfileBilltails.location = data.location
 
-    }
+
 
     return userProfileBilltails;
 
 }
+
+//reset Password here
+//validator Reset password
+exports.validateResetPassordForget = ((data) => {
+    let errorPersonEnter = {}
+        //kontrol eğer gönderilen verilen boşsa kontrol yap
+    if (isEmpty(data.email)) {
+        errorPersonEnter.eMail = "Can't be Empty!!"
+    }
+    return {
+        errorPersonEnter,
+        valid: Object.keys(errorPersonEnter).length === 0 ? true : false
+    }
+})

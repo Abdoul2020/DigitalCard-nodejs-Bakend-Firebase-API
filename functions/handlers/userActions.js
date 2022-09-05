@@ -7,7 +7,25 @@ const firebase = require("firebase");
 firebase.initializeApp(firebaseConfig);
 
 
-const { validateSignUpData, validateLoginData, validateRegisterCardRefer, reduceGeneralUserInfo, reduceSingleUserInfo, reducekulBill, reduceDarkMokAktif, reduceBankStatusMode, reducePositionOfSocail, reduceDocumentInfo, reduceBankInfo, reduceContactInfo } = require("../importantDoc/validatorData");
+const {
+    validateSignUpData,
+    validateLoginData,
+    validateRegisterCardRefer,
+    reduceGeneralUserInfo,
+    reduceSingleUserInfo,
+    reduceContactStatusMode,
+    reducekulBill,
+    reduceDarkMokAktif,
+    reduceBankStatusMode,
+    reducePositionOfSocail,
+    reduceDocumentStatusMode,
+    reduceFileUploadToStatusMode,
+    reduceOrderIdofBank,
+    reduceDocumentInfo,
+    reduceBankInfo,
+    reduceContactInfo,
+    validateResetPassordForget
+} = require("../importantDoc/validatorData");
 const { user } = require("firebase-functions/v1/auth");
 
 
@@ -441,8 +459,6 @@ exports.addSubProfile = (req, res) => {
         return res.status(400).json({ Error: "This field can't be empty!!" });
     }
 
-
-
     const newProfileAdd = {
         profileTag: req.body.profileTag,
         generalUserId: req.user.uid,
@@ -496,7 +512,9 @@ exports.addSubProfile = (req, res) => {
                         return db.collection("profilesOfGeneralUser").add(newProfileAdd);
                     }
 
-                }).then(() => {
+                }).then((doc) => {
+                    newProfileAdd.newProfileId = doc.id
+
                     return res.json(newProfileAdd)
                 })
                 .catch(err => {
@@ -946,11 +964,11 @@ exports.getAuthenticatedUser = ((req, res) => {
                 profileTheme: doc.data().profileTheme,
                 placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
                 profileId: doc.id,
-                vergiNumber: doc.data().vergiNumber,
+                taxNumber: doc.data().taxNumber,
                 taxAdministration: doc.data().taxAdministration,
                 companyStatus: doc.data().companyStatus,
-                ofisMaili: doc.data().ofisMaili,
-                ofisPhoneNumber: doc.data().ofisPhoneNumber,
+                officeEmail: doc.data().officeEmail,
+                officePhoneNumber: doc.data().officePhoneNumber,
                 location: doc.data().location
             });
         })
@@ -1189,7 +1207,7 @@ exports.postBanInfopanel = (req, res) => {
         isOpen: false,
         isDeleteOpen: false,
         statueMode: true,
-        OrderId: 0,
+        OrderId: req.body.OrderId,
         type: "bankform"
     }
     db.collection("bankData").add(createBank).then((data) => {
@@ -1407,9 +1425,11 @@ exports.getpanelInfFromHere = (req, res) => {
 
     let panelDataInfo = {}
 
-    const allpanelProfile = db.collection("bankData").where("profileId", "==", req.params.profileId)
+    const allpanelProfile = db.collection("bankData").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId)
 
     let countId = 0
+
+    console.log("ilk hata girdi")
 
     allpanelProfile.get().then((data) => {
 
@@ -1426,11 +1446,12 @@ exports.getpanelInfFromHere = (req, res) => {
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: countId++
+                OrderId: doc.data().OrderId
             });
         })
 
-        return db.collection("contactData").where("profileId", "==", req.params.profileId).get();
+        console.log("second hata girdi")
+        return db.collection("contactData").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
 
     }).then((data) => {
         data.forEach((doc) => {
@@ -1452,11 +1473,13 @@ exports.getpanelInfFromHere = (req, res) => {
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: countId++
+                OrderId: doc.data().OrderId
+
+
             });
         })
 
-        return db.collection("documentDataForm").where("profileId", "==", req.params.profileId).get();
+        return db.collection("documentDataForm").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
     }).then((data) => {
 
         data.forEach((doc) => {
@@ -1468,7 +1491,7 @@ exports.getpanelInfFromHere = (req, res) => {
                 emailToSend: doc.data().emailToSend,
                 publicstreetAdress: doc.data().publicstreetAdress,
                 publicDropNot: doc.data().publicDropNot,
-                OrderId: countId++,
+                OrderId: doc.data().OrderId,
                 type: doc.data().type,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
@@ -1476,17 +1499,15 @@ exports.getpanelInfFromHere = (req, res) => {
                 statueMode: doc.data().statueMode
             });
         })
-        return db.collection("fileUploadDocument").where("profileId", "==", req.params.profileId).get();
+        return db.collection("fileUploadDocument").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
     }).then((data) => {
 
-
-        console.log("veri gridi:::")
         data.forEach((doc) => {
 
             panelDataInfo.bankDataInfo.push({
                 belgeDocument: doc.data().belgeDocument,
                 belgeDocumentId: doc.id,
-                OrderId: countId++,
+                OrderId: doc.data().OrderId,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
@@ -1496,14 +1517,11 @@ exports.getpanelInfFromHere = (req, res) => {
         })
 
     }).then(() => {
-        console.log("veiler:", panelDataInfo)
         return res.json(panelDataInfo)
-    }).catch(() => {
-        return res.status(400).json({ errorgetPanel: "error wihle getting panel" })
+    }).catch((err) => {
+        console.log("hata burada:", err)
+        return res.status(400).json({ errorgetPanel: err })
     })
-
-
-
 }
 
 // update bank Info
@@ -1511,7 +1529,7 @@ exports.updateBankInfo = (req, res) => {
     let bankbilgi = reduceBankInfo(req.body);
     db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
 
-        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+        return res.json({ Mesaj: "Succesfully updated!!" })
 
     }).catch((err) => {
         console.error(err)
@@ -1581,7 +1599,60 @@ exports.updateStattuModeBank = (req, res) => {
     let bankbilgi = reduceBankStatusMode(req.body);
 
     db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
-        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//update statusMode contactData
+exports.updateStattuModeContact = (req, res) => {
+
+    let contactbilgi = reduceContactStatusMode(req.body);
+
+    db.doc(`/contactData/${req.params.contactDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//update statueMode Document BELGE
+exports.updateStattuModeDocumentToChange = (req, res) => {
+
+    let documentbilgi = reduceDocumentStatusMode(req.body);
+
+    db.doc(`/documentDataForm/${req.params.documentDataFormId}`).update(documentbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//update statueMode of File Upload
+exports.updateStattuModeFileUploadToView = (req, res) => {
+
+    let fileUploadbilgi = reduceFileUploadToStatusMode(req.body);
+    db.doc(`/fileUploadDocument/${req.params.belgeDocumentId}`).update(fileUploadbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//update Orderof Bank data
+exports.updateOrderOfBank = (req, res) => {
+    let bankbilgi = reduceOrderIdofBank(req.body);
+    db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
     }).catch((err) => {
         console.error(err)
         return res.status(500).json({ err: err.code })
@@ -1590,13 +1661,38 @@ exports.updateStattuModeBank = (req, res) => {
 }
 
 
+// I forget password
+exports.passwordForget = (req, res) => {
+    const personEnterForgetPassword = {
+        eMail: req.body.eMail
+    }
+    const { valid, errorPersonEnter } = validateResetPassordForget(personEnterForgetPassword);
+    if (!valid) {
+        return res.status(400).json({ errorPersonEnter });
+    }
+
+    firebase.auth().sendPasswordResetEmail(personEnterForgetPassword.eMail).then((data) => {
+        return res.status(201).json({ emailSent: data })
+    }).catch(err => {
+        console.error(err)
+            //auth/wrong-password
+            //auth/user-not-user
+        return res.status(500).json({ err: err })
+
+    })
+
+}
+
+
+
+
 //Fatura Information
 
 exports.BillInfoData = (req, res) => {
     let userProfileData = reducekulBill(req.body);
     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update(userProfileData).then(() => {
 
-        return res.json({ Mesaj: "Please enter the right Informations!" })
+        return res.json({ Mesaj: "Successfully added!" })
 
     }).catch((err) => {
         console.error(err)
