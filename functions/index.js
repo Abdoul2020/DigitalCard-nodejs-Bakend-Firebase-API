@@ -48,7 +48,11 @@ const {
     parolaChangeOfUser,
     updateOrderOfBank,
     updateStattuModeFileUploadToView,
-    passwordForget
+    passwordForget,
+    updateOrderOfContact,
+    updateOrderOfDocument,
+    updateOrderOfFileUploaded,
+    getTherandomUrInfo
 } = require("./handlers/userActions")
 
 const {
@@ -117,7 +121,12 @@ app.put("/changeStatusModeOfContact/:contactDataId", FBAuth, updateStattuModeCon
 app.put("/changeStatusModeOfDocument/:documentDataFormId", FBAuth, updateStattuModeDocumentToChange) //update document statusMode   
 app.put("/changeStatusModeOfFileUpload/:belgeDocumentId", FBAuth, updateStattuModeFileUploadToView) //update File Upload here  
 
-app.put("/changeOrdreIdOfBank/:bankDataId", FBAuth, updateOrderOfBank) //update order of Id Bank
+app.put("/changeOrdreIdOfBank/:bankDataId", FBAuth, updateOrderOfBank) //update order of Id Bank   
+app.put("/changeOrdreIdOfContact/:contactDataId", FBAuth, updateOrderOfContact) //updated order of Contact
+app.put("/changeOrdreIdOfdocument/:documentDataFormId", FBAuth, updateOrderOfDocument) //updaed order of Document 
+app.put("/changeOrdreIdOfFileUploaded/:belgeDocumentId", FBAuth, updateOrderOfFileUploaded) //uploaded order of File Uploaded 
+
+
 
 
 app.put("/contactdataUpdate/:conatctDataId", FBAuth, updateContactInfo); //update contact data   updateDocumentFormInfo
@@ -142,6 +151,8 @@ app.get("/user/:userHandleName", singleUserInfo); //get all data with  Name.
 app.get("/userid/:userId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
 
 app.get("/panelData/:profileId", FBAuth, getpanelInfFromHere); //get data of panel
+
+app.get("/geturlcardRandom/:urlRandomId", getTherandomUrInfo) ///get url card form Link card Read
 
 //user Info get with authenticated
 app.get("/userAuthData", FBAuth, getAuthenticatedUser);

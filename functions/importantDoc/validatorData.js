@@ -360,6 +360,33 @@ exports.reduceOrderIdofBank = (data) => {
 
 }
 
+//order of Contact Here  reduceOrderIdofContact
+exports.reduceOrderIdofContact = (data) => {
+    let orderOfContactDatadtails = {}
+        //bank station
+    orderOfContactDatadtails.OrderId = data.OrderId
+    return orderOfContactDatadtails;
+
+}
+
+// order of Document uploaded
+exports.reduceOrderIdofDocument = (data) => {
+    let orderOfDocumentDatadtails = {}
+        //bank station
+    orderOfDocumentDatadtails.OrderId = data.OrderId
+    return orderOfDocumentDatadtails;
+
+}
+
+//order of File Uploaded
+exports.reduceOrderIdofFileUploaded = (data) => {
+    let orderOfFileUploadedDatadtails = {}
+        //bank station
+    orderOfFileUploadedDatadtails.OrderId = data.OrderId
+    return orderOfFileUploadedDatadtails;
+
+}
+
 
 
 //contyactData Info  reduceContactInfo
@@ -490,7 +517,7 @@ exports.reducekulBill = (data) => {
 exports.validateResetPassordForget = ((data) => {
     let errorPersonEnter = {}
         //kontrol eğer gönderilen verilen boşsa kontrol yap
-    if (isEmpty(data.email)) {
+    if (isEmpty(data.eMail)) {
         errorPersonEnter.eMail = "Can't be Empty!!"
     }
     return {

@@ -24,7 +24,12 @@ const {
     reduceDocumentInfo,
     reduceBankInfo,
     reduceContactInfo,
-    validateResetPassordForget
+    validateResetPassordForget,
+    reduceOrderIdofContact,
+    reduceOrderIdofDocument,
+    reduceOrderIdofFileUploaded
+
+
 } = require("../importantDoc/validatorData");
 const { user } = require("firebase-functions/v1/auth");
 
@@ -126,7 +131,7 @@ exports.registerClass = (req, res) => {
 
 }
 
-// card refer to another url
+// card refer to another url not workinkg anymore
 exports.registerClassUrlReference = (req, res) => {
 
     const newPersonUrlRefer = {
@@ -478,6 +483,12 @@ exports.addSubProfile = (req, res) => {
         statusOfUrl: true,
         placeOfSocialMediaPosition: "top",
         telNumber: "",
+        taxNumber: "",
+        taxAdministration: "",
+        companyStatus: "",
+        officeEmail: "",
+        officePhoneNumber: "",
+        location: "",
         position: "",
         profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
         backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages%2F${backImag}?alt=media`,
@@ -532,6 +543,29 @@ exports.addSubProfile = (req, res) => {
     })
 }
 
+//get the the Info of Url random add
+exports.getTherandomUrInfo = (req, res) => {
+
+    let randomUrlData = {}
+    db.doc(`/cardUrlLinks/${req.params.urlRandomId}`).get().then(doc => {
+        if (!doc.exists) {
+            return res.status(404).json({ Mesaj: "This link doesn't exist!!!" })
+
+        } else {
+            randomUrlData = doc.data()
+            randomUrlData.urlRandomId = doc.id
+        }
+
+
+    }).then(() => {
+        return res.json(randomUrlData)
+    }).catch(err => {
+        console.error(err)
+        return res.status(500).json({ Mesaj: err.code })
+    })
+
+}
+
 
 //random Link id functşon for the card
 exports.cardLinkRandomAdd = (req, res) => {
@@ -550,7 +584,7 @@ exports.cardLinkRandomAdd = (req, res) => {
 
     const createIkon = {
         randomurlText: req.body.randomurlText,
-        generalUserId: req.user.generalUserId,
+        admingeneralUserIdOnly: req.user.generalUserId,
         eMail: req.user.eMail,
         verificationCode
     }
@@ -844,8 +878,6 @@ exports.singleUserInfo = (req, res) => {
         data.forEach((doc) => {
             singleUserData.allsocial.push(doc.data());
         })
-
-
     })
 
     .then(() => {
@@ -863,7 +895,7 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
         // db.doc(`/userabd/${req.params.eMail}`).get()
     db.collection("userGeneral").where("generalUserId", "==", req.params.userId).get().then((doc) => {
         if (!doc.empty) {
-            return db.collection("cardUrlLinks").where("generalUserId", "==", req.params.generalUserId).get();
+            return db.collection("cardUrlLinks").where("generalUserId", "==", req.params.userId).get();
         } else {
             return res.status(404).json({ Error: "we dont't have such user" });
 
@@ -904,7 +936,14 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 profileTheme: doc.data().profileTheme,
                 placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
                 position: doc.data().position,
-                statusOfUrl: doc.data().statusOfUrl
+                statusOfUrl: doc.data().statusOfUrl,
+                profileId: doc.id,
+                taxNumber: doc.data().taxNumber,
+                taxAdministration: doc.data().taxAdministration,
+                companyStatus: doc.data().companyStatus,
+                officeEmail: doc.data().officeEmail,
+                officePhoneNumber: doc.data().officePhoneNumber,
+                location: doc.data().location
             })
         })
 
@@ -1657,8 +1696,44 @@ exports.updateOrderOfBank = (req, res) => {
         console.error(err)
         return res.status(500).json({ err: err.code })
     })
-
 }
+
+//update Orderof contact
+exports.updateOrderOfContact = (req, res) => {
+    let contactbilgi = reduceOrderIdofContact(req.body);
+    db.doc(`/contactData/${req.params.contactDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//order of Document Form
+exports.updateOrderOfDocument = (req, res) => {
+    let Documentbilgi = reduceOrderIdofDocument(req.body);
+    db.doc(`/documentDataForm/${req.params.documentDataFormId}`).update(Documentbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//order of File Uploaded
+exports.updateOrderOfFileUploaded = (req, res) => {
+    let FileUploadedbilgi = reduceOrderIdofFileUploaded(req.body);
+    db.doc(`/fileUploadDocument/${req.params.belgeDocumentId}`).update(FileUploadedbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+///panel updated ***************************************************
+
+
 
 
 // I forget password
@@ -1672,7 +1747,7 @@ exports.passwordForget = (req, res) => {
     }
 
     firebase.auth().sendPasswordResetEmail(personEnterForgetPassword.eMail).then((data) => {
-        return res.status(201).json({ emailSent: data })
+        return res.status(200).json({ emailSent: "successfully sent" })
     }).catch(err => {
         console.error(err)
             //auth/wrong-password
@@ -1711,10 +1786,6 @@ exports.parolaChangeOfUser = (req, res) => {
     }
 
     console.log("data here:", req.user)
-
-
-
-
 
     if (userInfoProfile.newPassword != userInfoProfile.confirmNewpassword) {
 
