@@ -289,7 +289,7 @@ exports.loginClassWithUrlCard = (req, res) => {
             })
 
         } else {
-            res.status(500).json({ verificationCodeHata: "verification kodu aynı değil" })
+            res.status(500).json({ verificationCodeError: "Verification Code is not matching" });
         }
     }).catch((err) => {
         console.log(err)
@@ -487,6 +487,7 @@ exports.addSubProfile = (req, res) => {
         taxAdministration: "",
         companyStatus: "",
         officeEmail: "",
+        websiteUrlLink: "",
         officePhoneNumber: "",
         location: "",
         position: "",
@@ -578,7 +579,7 @@ exports.cardLinkRandomAdd = (req, res) => {
     var verificationCode = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 6; i++) {
         verificationCode += possible.charAt(Math.floor(Math.random() * possible.length));
     }
 
@@ -818,7 +819,8 @@ exports.deleteUser = (req, res) => {
 //single user data Info with userName, userView
 exports.singleUserInfo = (req, res) => {
     let singleUserData = {}
-        // db.doc(`/userabd/${req.params.eMail}`).get()
+
+    // db.doc(`/userabd/${req.params.eMail}`).get()
     db.collection("userGeneral").where("userHandleName", "==", req.params.userHandleName).get().then((doc) => {
         if (!doc.empty) {
             return db.collection("cardUrlLinks").where("userHandleName", "==", req.params.userHandleName).get();
@@ -919,7 +921,7 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
         data.forEach(doc => {
             singleUserData.allSubProfileInfo.push({
                 publicName: doc.data().publicName,
-                publicSurName: doc.data().publicSurname,
+                publicSurName: doc.data().publicSurName,
                 profileTag: doc.data().profileTag,
                 generalUserId: doc.data().generalUserId,
                 eMail: doc.data().eMail,
@@ -929,6 +931,7 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 dateofCreation: doc.data().dateofCreation,
                 phoneNumber: doc.data().phoneNumber,
                 profilDescription: doc.data().profilDescription,
+                orderOfProfile: doc.data().orderOfProfile,
                 profileAdres: doc.data().profileAdres,
                 profileBanner: doc.data().profileBanner,
                 profileCompany: doc.data().profileCompany,
@@ -939,6 +942,8 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 statusOfUrl: doc.data().statusOfUrl,
                 profileId: doc.id,
                 taxNumber: doc.data().taxNumber,
+                telNumber: doc.data().telNumber,
+                websiteUrlLink: doc.data().websiteUrlLink,
                 taxAdministration: doc.data().taxAdministration,
                 companyStatus: doc.data().companyStatus,
                 officeEmail: doc.data().officeEmail,
@@ -947,21 +952,287 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
             })
         })
 
-        return db.collection("userSocialMediaUrl").where("generalUserId", "==", singleUserData.allSubProfileInfo[0].generalUserId).get()
+        return db.collection("userSocialMediaUrl").where("generalUserId", "==", singleUserData.allSubProfileInfo[0].generalUserId).where("statuMode", "==", true).get()
 
     }).then((data) => {
         singleUserData.allsocial = []
         data.forEach((doc) => {
             singleUserData.allsocial.push(doc.data());
         })
+
+        return db.collection("bankData").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get()
+
+    }).then((data) => {
+
+        singleUserData.allPanelInfo = []
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                accountOwner: doc.data().accountOwner,
+                bankIban: doc.data().bankIban,
+                bankName: doc.data().bankName,
+                bankStation: doc.data().bankStation,
+                profileId: doc.data().profileId,
+                BankDataId: doc.id,
+                statueMode: doc.data().statueMode,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: doc.data().OrderId
+            });
+        })
+
+        return db.collection("contactData").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                kisiselEmail: doc.data().kisiselEmail,
+                kisiselTelefon: doc.data().kisiselTelefon,
+                kurumsalEmail: doc.data().kurumsalEmail,
+                profilId: doc.data().profilId,
+                profileCity: doc.data().profileCity,
+                profileCountry: doc.data().profileCountry,
+                profileNot: doc.data().profileNot,
+                profilePosition: doc.data().profilePosition,
+                publicName: doc.data().publicName,
+                publicOrganization: doc.data().publicOrganization,
+                publicsurname: doc.data().publicsurname,
+                streetAdress: doc.data().streetAdress,
+                statueMode: doc.data().statueMode,
+                profileId: doc.data().profileId,
+                contactDataId: doc.id,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: doc.data().OrderId
+
+
+            });
+        })
+
+        return db.collection("documentDataForm").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                statusNameSurname: doc.data().statusNameSurname,
+                statusEmail: doc.data().statusEmail,
+                statusTelefon: doc.data().statusTelefon,
+                statusMessage: doc.data().statusMessage,
+                emailToSend: doc.data().emailToSend,
+                publicstreetAdress: doc.data().publicstreetAdress,
+                publicDropNot: doc.data().publicDropNot,
+                OrderId: doc.data().OrderId,
+                profileId: doc.data().profileId,
+                type: doc.data().type,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                documentDataFormId: doc.id,
+                statueMode: doc.data().statueMode
+            });
+        })
+
+        return db.collection("fileUploadDocument").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                belgeDocument: doc.data().belgeDocument,
+                belgeDocumentId: doc.id,
+                OrderId: doc.data().OrderId,
+                isOpen: doc.data().isOpen,
+                profileId: doc.data().profileId,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode
+            });
+        })
+
+
     }).then(() => {
         return res.json(singleUserData);
-    }).catch(err => {
+    }).catch((err) => {
         console.error(err)
-        return res.status(500).json({ Error: err.code })
+        return res.status(500).json({ Error: err })
     })
-
 }
+
+//single user data Info with generalUserId from preview page Auth
+exports.singleUserInfoWithgeneraluserIdPreviewPageToken = (req, res) => {
+    let singleUserData = {}
+        // db.doc(`/userabd/${req.params.eMail}`).get()
+    db.collection("userGeneral").where("generalUserId", "==", req.params.userId).get().then((doc) => {
+        if (!doc.empty) {
+            return db.collection("cardUrlLinks").where("generalUserId", "==", req.params.userId).get();
+        } else {
+            return res.status(404).json({ Error: "we dont't have such user" });
+
+        }
+
+    }).then((data) => {
+        singleUserData.dataInfo = [];
+        data.forEach(doc => {
+            singleUserData.dataInfo.push({
+                publicName: doc.data().publicName,
+                publicSurname: doc.data().publicSurname,
+                userHandleName: doc.data().userHandleName,
+                eMail: doc.data().eMail,
+                generalUserId: doc.data().generalUserId
+            })
+        })
+        return db.collection("profilesOfGeneralUser").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).get()
+
+    }).then((data) => {
+        singleUserData.allSubProfileInfo = [];
+        data.forEach(doc => {
+            singleUserData.allSubProfileInfo.push({
+                publicName: doc.data().publicName,
+                publicSurName: doc.data().publicSurName,
+                profileTag: doc.data().profileTag,
+                generalUserId: doc.data().generalUserId,
+                eMail: doc.data().eMail,
+                backgorundImage: doc.data().backgorundImage,
+                profileUrl: doc.data().profileUrl,
+                statusMode: doc.data().statusMode,
+                dateofCreation: doc.data().dateofCreation,
+                phoneNumber: doc.data().phoneNumber,
+                profilDescription: doc.data().profilDescription,
+                orderOfProfile: doc.data().orderOfProfile,
+                profileAdres: doc.data().profileAdres,
+                profileBanner: doc.data().profileBanner,
+                profileCompany: doc.data().profileCompany,
+                profileEmail: doc.data().profileEmail,
+                profileTheme: doc.data().profileTheme,
+                placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
+                position: doc.data().position,
+                statusOfUrl: doc.data().statusOfUrl,
+                profileId: doc.id,
+                taxNumber: doc.data().taxNumber,
+                telNumber: doc.data().telNumber,
+                websiteUrlLink: doc.data().websiteUrlLink,
+                taxAdministration: doc.data().taxAdministration,
+                companyStatus: doc.data().companyStatus,
+                officeEmail: doc.data().officeEmail,
+                officePhoneNumber: doc.data().officePhoneNumber,
+                location: doc.data().location
+            })
+        })
+
+        return db.collection("userSocialMediaUrl").where("generalUserId", "==", singleUserData.allSubProfileInfo[0].generalUserId).where("statuMode", "==", true).get()
+
+    }).then((data) => {
+        singleUserData.allsocial = []
+        data.forEach((doc) => {
+            singleUserData.allsocial.push(doc.data());
+        })
+
+        return db.collection("bankData").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get()
+
+    }).then((data) => {
+
+        singleUserData.allPanelInfo = []
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                accountOwner: doc.data().accountOwner,
+                bankIban: doc.data().bankIban,
+                bankName: doc.data().bankName,
+                bankStation: doc.data().bankStation,
+                profileId: doc.data().profileId,
+                BankDataId: doc.id,
+                statueMode: doc.data().statueMode,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: doc.data().OrderId
+            });
+        })
+
+        return db.collection("contactData").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                kisiselEmail: doc.data().kisiselEmail,
+                kisiselTelefon: doc.data().kisiselTelefon,
+                kurumsalEmail: doc.data().kurumsalEmail,
+                profilId: doc.data().profilId,
+                profileCity: doc.data().profileCity,
+                profileCountry: doc.data().profileCountry,
+                profileNot: doc.data().profileNot,
+                profilePosition: doc.data().profilePosition,
+                publicName: doc.data().publicName,
+                publicOrganization: doc.data().publicOrganization,
+                publicsurname: doc.data().publicsurname,
+                streetAdress: doc.data().streetAdress,
+                statueMode: doc.data().statueMode,
+                profileId: doc.data().profileId,
+                contactDataId: doc.id,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                OrderId: doc.data().OrderId
+
+
+            });
+        })
+
+        return db.collection("documentDataForm").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                statusNameSurname: doc.data().statusNameSurname,
+                statusEmail: doc.data().statusEmail,
+                statusTelefon: doc.data().statusTelefon,
+                statusMessage: doc.data().statusMessage,
+                emailToSend: doc.data().emailToSend,
+                publicstreetAdress: doc.data().publicstreetAdress,
+                publicDropNot: doc.data().publicDropNot,
+                OrderId: doc.data().OrderId,
+                profileId: doc.data().profileId,
+                type: doc.data().type,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                documentDataFormId: doc.id,
+                statueMode: doc.data().statueMode
+            });
+        })
+
+        return db.collection("fileUploadDocument").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                belgeDocument: doc.data().belgeDocument,
+                belgeDocumentId: doc.id,
+                OrderId: doc.data().OrderId,
+                isOpen: doc.data().isOpen,
+                profileId: doc.data().profileId,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode
+            });
+        })
+
+
+    }).then(() => {
+        return res.json(singleUserData);
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ Error: err })
+    })
+}
+
 
 
 //kayıtlı olan  kullanıcı bilgileri Getir
@@ -1004,11 +1275,13 @@ exports.getAuthenticatedUser = ((req, res) => {
                 placeOfSocialMediaPosition: doc.data().placeOfSocialMediaPosition,
                 profileId: doc.id,
                 taxNumber: doc.data().taxNumber,
+                websiteUrlLink: doc.data().websiteUrlLink,
                 taxAdministration: doc.data().taxAdministration,
                 companyStatus: doc.data().companyStatus,
                 officeEmail: doc.data().officeEmail,
                 officePhoneNumber: doc.data().officePhoneNumber,
                 location: doc.data().location
+
             });
         })
 
@@ -1054,6 +1327,7 @@ exports.getAllSubprofileOfGeneralUser = ((req, res) => {
                     phoneNumber: doc.data().phoneNumber,
                     telNumber: doc.data().telNumber,
                     statusMode: doc.data().statusMode,
+                    websiteUrlLink: doc.data().websiteUrlLink,
                     profileUrl: doc.data().profileUrl,
                     SubprofileId: doc.id
                 });
@@ -1207,8 +1481,10 @@ exports.postContactInfopanel = (req, res) => {
         profileCountry: req.body.profileCountry,
         profileCity: req.body.profileCity,
         profileNot: req.body.profileNot,
+        generalUserId: req.user.generalUserId,
         profileId: req.params.profileId,
         statueMode: true,
+        OrderId: req.body.OrderId,
         isOpen: false,
         isDeleteOpen: false,
         type: "conatctAddForm"
@@ -1243,11 +1519,13 @@ exports.postBanInfopanel = (req, res) => {
         bankStation: req.body.bankStation,
         bankIban: req.body.bankIban,
         profileId: req.params.profileId,
+        generalUserId: req.user.generalUserId,
         isOpen: false,
         isDeleteOpen: false,
         statueMode: true,
         OrderId: req.body.OrderId,
-        type: "bankform"
+        type: "bankform",
+        OrderId: req.body.OrderId
     }
     db.collection("bankData").add(createBank).then((data) => {
 
@@ -1278,8 +1556,9 @@ exports.postDocumentInfopanel = (req, res) => {
         profileId: req.params.profileId,
         emailToSend: req.body.emailToSend,
         publicstreetAdress: req.body.publicstreetAdress,
+        generalUserId: req.user.generalUserId,
         publicDropNot: req.body.publicDropNot,
-        OrderId: 0,
+        OrderId: req.body.OrderId,
         statueMode: true,
         isOpen: false,
         isDeleteOpen: false,
@@ -1355,6 +1634,7 @@ exports.uploadFilePdf = (req, res) => {
                 isOpen: false,
                 isDeleteOpen: false,
                 statueMode: true,
+                generalUserId: req.user.generalUserId,
                 OrderId: 0,
                 profileId: req.params.profileId,
                 type: "uploadFileDocument"
@@ -1734,6 +2014,60 @@ exports.updateOrderOfFileUploaded = (req, res) => {
 ///panel updated ***************************************************
 
 
+//delete Bank Panel from here
+exports.bankPanelDelete = (req, res) => {
+
+    const bankDataId = db.doc(`/bankData/${req.params.bankDataId}`);
+    bankDataId.get().then((doc) => {
+        bankDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
+
+// delete Contact Form here
+exports.contactPanelDelete = (req, res) => {
+
+    const contactDataId = db.doc(`/contactData/${req.params.contactDataId}`);
+    contactDataId.get().then((doc) => {
+        contactDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
+
+// delete Document form heer
+exports.DocumentFormPanelDelete = (req, res) => {
+    const documentDataId = db.doc(`/documentDataForm/${req.params.documenttDataId}`);
+    documentDataId.get().then((doc) => {
+        documentDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
+
+// delete File Uploaded
+
+exports.fileUploadedPanelDelete = (req, res) => {
+    const fileuploadedDataId = db.doc(`/fileUploadDocument/${req.params.fileuploadedDataId}`);
+    fileuploadedDataId.get().then((doc) => {
+        fileuploadedDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
 
 
 // I forget password

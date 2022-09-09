@@ -52,7 +52,12 @@ const {
     updateOrderOfContact,
     updateOrderOfDocument,
     updateOrderOfFileUploaded,
-    getTherandomUrInfo
+    getTherandomUrInfo,
+    bankPanelDelete,
+    contactPanelDelete,
+    singleUserInfoWithgeneraluserIdPreviewPageToken,
+    DocumentFormPanelDelete,
+    fileUploadedPanelDelete
 } = require("./handlers/userActions")
 
 const {
@@ -148,7 +153,9 @@ app.post("/changegePassword", FBAuth, parolaChangeOfUser) //change Passworrd
 
 
 app.get("/user/:userHandleName", singleUserInfo); //get all data with  Name.
-app.get("/userid/:userId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD
+app.get("/userid/:userId", singleUserInfoWithgeneraluserId); //kullancici bilgiler getir bana with GENRALUSERıD 
+app.get("/userPreviewPage/:userId", FBAuth, singleUserInfoWithgeneraluserIdPreviewPageToken);
+
 
 app.get("/panelData/:profileId", FBAuth, getpanelInfFromHere); //get data of panel
 
@@ -161,6 +168,13 @@ app.get("/userAuthData", FBAuth, getAuthenticatedUser);
 app.delete("/deleteUser", FBAuth, deleteUser);
 app.delete("/deleteProfile/:profilId", FBAuth, deleteSingleProfile);
 app.delete("/deleteSocialMediaofProfile/:socialMediaId", FBAuth, deleteSocialMediaOfProfile);
+
+//**********Panel delete */
+app.delete("/bankPanelDelete/:bankDataId", FBAuth, bankPanelDelete);
+app.delete("/contactPanelDelete/:contactDataId", FBAuth, contactPanelDelete);
+app.delete("/documentPanelDelete/:documenttDataId", FBAuth, DocumentFormPanelDelete);
+app.delete("/fileUploadPanelDelete/:fileuploadedDataId", FBAuth, fileUploadedPanelDelete);
+
 
 
 //All userbring

@@ -255,6 +255,10 @@ exports.reduceSingleUserInfo = (data) => {
         infoData.position = data.position
     }
 
+    if (!isEmpty(data.websiteUrlLink.trim())) {
+        infoData.websiteUrlLink = data.websiteUrlLink
+    }
+
     infoData.orderOfProfile = data.orderOfProfile
 
     return infoData;
