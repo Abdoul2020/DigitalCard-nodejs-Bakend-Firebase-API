@@ -220,44 +220,41 @@ exports.reduceGeneralUserInfo = (data) => {
 exports.reduceSingleUserInfo = (data) => {
     let infoData = {}
 
-    if (!isEmpty(data.profileEmail.trim())) {
-        infoData.profileEmail = data.profileEmail
-    }
 
-    if (!isEmpty(data.phoneNumber.trim())) {
-        infoData.phoneNumber = data.phoneNumber
-    }
+    infoData.profileEmail = data.profileEmail
 
-    if (!isEmpty(data.profilDescription.trim())) {
-        infoData.profilDescription = data.profilDescription
-    }
-    if (!isEmpty(data.publicName.trim())) {
-        infoData.publicName = data.publicName
-    }
-    if (!isEmpty(data.publicSurName.trim())) {
-        infoData.publicSurName = data.publicSurName
-    }
-    if (!isEmpty(data.profileAdres.trim())) {
-        infoData.profileAdres = data.profileAdres
-    }
+    infoData.phoneNumber = data.phoneNumber
 
-    if (!isEmpty(data.profileCompany.trim())) {
-        infoData.profileCompany = data.profileCompany
-    }
-    if (!isEmpty(data.profileTag.trim())) {
-        infoData.profileTag = data.profileTag
-    }
-    if (!isEmpty(data.telNumber.trim())) {
-        infoData.telNumber = data.telNumber
-    }
 
-    if (!isEmpty(data.position.trim())) {
-        infoData.position = data.position
-    }
+    infoData.profilDescription = data.profilDescription
 
-    if (!isEmpty(data.websiteUrlLink.trim())) {
-        infoData.websiteUrlLink = data.websiteUrlLink
-    }
+
+    infoData.publicName = data.publicName
+
+
+    infoData.publicSurName = data.publicSurName
+
+
+    infoData.profileAdres = data.profileAdres
+
+
+
+    infoData.profileCompany = data.profileCompany
+
+
+    infoData.profileTag = data.profileTag
+
+
+    infoData.telNumber = data.telNumber
+
+
+
+    infoData.position = data.position
+
+
+
+    infoData.websiteUrlLink = data.websiteUrlLink
+
 
     infoData.orderOfProfile = data.orderOfProfile
 
@@ -293,22 +290,22 @@ exports.reducePositionOfSocail = (data) => {
 exports.reduceBankInfo = (data) => {
     let bankDatadtails = {}
         //accountOwner
-    if (!isEmpty(data.accountOwner.trim())) {
-        bankDatadtails.accountOwner = data.accountOwner
-    }
+
+    bankDatadtails.accountOwner = data.accountOwner
+
 
     //bankIban
-    if (!isEmpty(data.bankIban.trim())) {
-        bankDatadtails.bankIban = data.bankIban
-    }
+
+    bankDatadtails.bankIban = data.bankIban
+
     //bankName
-    if (!isEmpty(data.bankName.trim())) {
-        bankDatadtails.bankName = data.bankName
-    }
+
+    bankDatadtails.bankName = data.bankName
+
     //bank station
-    if (!isEmpty(data.bankStation.trim())) {
-        bankDatadtails.bankStation = data.bankStation
-    }
+
+    bankDatadtails.bankStation = data.bankStation
+
 
     return bankDatadtails;
 
@@ -316,6 +313,16 @@ exports.reduceBankInfo = (data) => {
 
 //bank StatusMode
 exports.reduceBankStatusMode = (data) => {
+
+    let bankDatadtails = {}
+        //bank station
+    bankDatadtails.statueMode = data.statueMode
+
+    return bankDatadtails;
+}
+
+//profile Url statusMode  
+exports.reduceProfileUrlStatusMode = (data) => {
 
     let bankDatadtails = {}
         //bank station
@@ -334,6 +341,18 @@ exports.reduceContactStatusMode = (data) => {
     return contactDatadtails;
 
 }
+
+//fatura StatueMODE from here
+exports.reduceFaturaBillStatusMode = (data) => {
+
+    let contactDatadtails = {}
+        //bank station
+    contactDatadtails.statueMode = data.statueMode
+
+    return contactDatadtails;
+
+}
+
 
 //Document to Change  reduceDocumentStatusMode
 exports.reduceDocumentStatusMode = (data) => {
@@ -357,6 +376,14 @@ exports.reduceFileUploadToStatusMode = (data) => {
 
 //orderOfBank Id reduceOrderIdofBank
 exports.reduceOrderIdofBank = (data) => {
+    let orderOfBankDatadtails = {}
+        //bank station
+    orderOfBankDatadtails.OrderId = data.OrderId
+    return orderOfBankDatadtails;
+
+}
+
+exports.reduceOrderIdofprofileUrl = (data) => {
     let orderOfBankDatadtails = {}
         //bank station
     orderOfBankDatadtails.OrderId = data.OrderId
@@ -392,62 +419,82 @@ exports.reduceOrderIdofFileUploaded = (data) => {
 }
 
 
+//updated contact panel Title from here
+exports.reduceTitleUpdatePanel = (data) => {
+    let titleContactUpdate = {}
+        //contact station
+    titleContactUpdate.panelTitle = data.panelTitle
+    return titleContactUpdate;
+
+}
+
+//update profile Url panel title from here   
+
+exports.reduceTitleUpdatePanelProfileUrl = (data) => {
+    let titleContactUpdate = {}
+        //contact station
+    titleContactUpdate.panelTitle = data.panelTitle
+    return titleContactUpdate;
+
+}
+
+
+//bvank panel Title   
+exports.reduceTitleUpdatePanelBank = (data) => {
+    let titleContactUpdate = {}
+        //contact station
+    titleContactUpdate.panelTitle = data.panelTitle
+    return titleContactUpdate;
+
+}
+
+///panel Title Document   
+exports.reduceTitleUpdatePanelDocument = (data) => {
+    let titleContactUpdate = {}
+        //contact station
+    titleContactUpdate.panelTitle = data.panelTitle
+    return titleContactUpdate;
+
+}
+
+//panle Title FileUpload   
+
+exports.reduceTitleUpdatePanelFileUpload = (data) => {
+    let titleContactUpdate = {}
+        //contact station
+    titleContactUpdate.panelTitle = data.panelTitle
+    return titleContactUpdate;
+
+}
+
+
+
 
 //contyactData Info  reduceContactInfo
 
 exports.reduceContactInfo = (data) => {
     let contactDatadtails = {}
 
-    if (!isEmpty(data.publicName.trim())) {
-        contactDatadtails.publicName = data.publicName
-    }
+    contactDatadtails.publicName = data.publicName
+    contactDatadtails.publicsurname = data.publicsurname
+    contactDatadtails.publicOrganization = data.publicOrganization
+    contactDatadtails.profilePosition = data.profilePosition
+    contactDatadtails.streetAdress = data.streetAdress
+    contactDatadtails.profileCountry = data.profileCountry
+    contactDatadtails.profileCity = data.profileCity
+    contactDatadtails.profileNot = data.profileNot
 
 
-    if (!isEmpty(data.publicsurname.trim())) {
-        contactDatadtails.publicsurname = data.publicsurname
-    }
+    return contactDatadtails;
 
-    if (!isEmpty(data.publicOrganization.trim())) {
-        contactDatadtails.publicOrganization = data.publicOrganization
-    }
+}
 
 
-    if (!isEmpty(data.profilePosition.trim())) {
-        contactDatadtails.profilePosition = data.profilePosition
-    }
+//update Url Panel from here    reduceUrlPanelInfo
 
-    if (!isEmpty(data.kurumsalTelefon.trim())) {
-        contactDatadtails.kurumsalTelefon = data.kurumsalTelefon
-    }
-
-    if (!isEmpty(data.kisiselTelefon.trim())) {
-        contactDatadtails.kisiselTelefon = data.kisiselTelefon
-    }
-
-    if (!isEmpty(data.kurumsalEmail.trim())) {
-        contactDatadtails.kurumsalEmail = data.kurumsalEmail
-    }
-
-    if (!isEmpty(data.kisiselEmail.trim())) {
-        contactDatadtails.kisiselEmail = data.kisiselEmail
-    }
-
-    if (!isEmpty(data.streetAdress.trim())) {
-        contactDatadtails.streetAdress = data.streetAdress
-    }
-
-    if (!isEmpty(data.profileCountry.trim())) {
-        contactDatadtails.profileCountry = data.profileCountry
-    }
-
-    if (!isEmpty(data.profileCity.trim())) {
-        contactDatadtails.profileCity = data.profileCity
-    }
-
-    if (!isEmpty(data.profileNot.trim())) {
-        contactDatadtails.profileNot = data.profileNot
-    }
-
+exports.reduceUrlPanelInfo = (data) => {
+    let contactDatadtails = {}
+    contactDatadtails.panelUrlLink = data.panelUrlLink
     return contactDatadtails;
 
 }
@@ -456,9 +503,9 @@ exports.reduceContactInfo = (data) => {
 exports.reduceDocumentInfo = (data) => {
     let documentDatadtails = {}
 
-    if (!isEmpty(data.emailToSend.trim())) {
-        documentDatadtails.emailToSend = data.emailToSend
-    }
+
+    documentDatadtails.emailToSend = data.emailToSend
+
 
 
     documentDatadtails.statusNameSurname = data.statusNameSurname
@@ -470,14 +517,10 @@ exports.reduceDocumentInfo = (data) => {
     documentDatadtails.statusMessage = data.statusMessage
 
 
+    documentDatadtails.publicstreetAdress = data.publicstreetAdress
 
-    if (!isEmpty(data.publicstreetAdress.trim())) {
-        documentDatadtails.publicstreetAdress = data.publicstreetAdress
-    }
 
-    if (!isEmpty(data.publicDropNot.trim())) {
-        documentDatadtails.publicDropNot = data.publicDropNot
-    }
+    documentDatadtails.publicDropNot = data.publicDropNot
 
     return documentDatadtails;
 
@@ -515,6 +558,11 @@ exports.reducekulBill = (data) => {
     return userProfileBilltails;
 
 }
+
+//fatura StatueMode from heere
+
+
+
 
 //reset Password here
 //validator Reset password

@@ -14,6 +14,7 @@ module.exports = (req, res, next) => {
 
     //verifier et return which token is that
     admin.auth().verifyIdToken(idToken).then(tokenac => {
+
         req.user = tokenac;
         console.log(tokenac);
         return db.collection("userGeneral").where("generalUserId", "==", req.user.uid)
@@ -26,8 +27,11 @@ module.exports = (req, res, next) => {
                 return next()
             }).catch(err => {
                 console.error("Error while checking token", err);
+
                 res.status(403).json({ err })
             })
+
+
 
     })
 

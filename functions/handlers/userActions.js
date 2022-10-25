@@ -14,20 +14,29 @@ const {
     reduceGeneralUserInfo,
     reduceSingleUserInfo,
     reduceContactStatusMode,
+    reduceFaturaBillStatusMode,
     reducekulBill,
     reduceDarkMokAktif,
     reduceBankStatusMode,
+    reduceProfileUrlStatusMode,
     reducePositionOfSocail,
     reduceDocumentStatusMode,
     reduceFileUploadToStatusMode,
     reduceOrderIdofBank,
+    reduceOrderIdofprofileUrl,
     reduceDocumentInfo,
     reduceBankInfo,
     reduceContactInfo,
     validateResetPassordForget,
     reduceOrderIdofContact,
     reduceOrderIdofDocument,
-    reduceOrderIdofFileUploaded
+    reduceOrderIdofFileUploaded,
+    reduceTitleUpdatePanel,
+    reduceTitleUpdatePanelBank,
+    reduceTitleUpdatePanelDocument,
+    reduceTitleUpdatePanelFileUpload,
+    reduceTitleUpdatePanelProfileUrl,
+    reduceUrlPanelInfo
 
 
 } = require("../importantDoc/validatorData");
@@ -35,6 +44,7 @@ const { user } = require("firebase-functions/v1/auth");
 
 
 exports.registerClass = (req, res) => {
+
     const newPersonInfo = {
         eMail: req.body.eMail,
         publicName: req.body.publicName,
@@ -617,6 +627,7 @@ exports.socialUrlAdd = (req, res) => {
     }
 
     const newComments = {
+
         socialUrlLink: req.body.socialUrlLink,
         socialtype: req.body.socialtype,
         eMail: req.user.eMail,
@@ -624,6 +635,8 @@ exports.socialUrlAdd = (req, res) => {
         profileId: req.params.profileId,
         statuMode: true,
         socialOrder: req.body.socialOrder,
+
+
     }
 
     db.collection("userSocialMediaUrl").add(newComments).then(() => {
@@ -633,7 +646,131 @@ exports.socialUrlAdd = (req, res) => {
         console.log(err)
         return res.status(500).json({ Error: err.code })
     })
+
+
+
 }
+
+
+//update social from panel Changes
+exports.updateSocialMediaOfPanelChanges = (req, res) => {
+
+    //let infoToChange = reduceSingleUserInfo(req.body);
+    let profilId = req.body.profileId
+    let socialMediaId = req.body.socialMediaId
+    let socialMediaType = req.body.socialMediaType
+    let socialUrlLink = req.body.socialUrlLink
+
+
+    let allSocialMedia = []
+
+
+    db.collection("userSocialMediaUrl").where("profileId", "==", profilId).get().then((doc) => {
+
+        allSocialMedia.push({
+            eMail: doc.data().eMail,
+            profileId: doc.data().profileId,
+            socialUrlLink: doc.data().socialUrlLink,
+            socialtype: doc.data().socialtype,
+            socialMediaId: doc.id
+        })
+
+    }).then(() => {
+
+        if (allSocialMedia.socialtype === socialMediaType) {
+
+            db.doc(`/userSocialMediaUrl/${socialMediaId}`).update({
+
+                socialUrlLink
+
+            })
+
+        }
+
+
+
+    })
+
+}
+
+//update only social Url Link to social
+
+
+
+
+//Add New social Media Url from here
+exports.socialUrlAddNew = (req, res) => {
+
+
+    let socialUrlLinkvariable = req.body.socialUrlLink
+    let socialTypeVariable = req.body.socialtype
+    let socialOrder = req.body.socialOrder
+
+
+
+    const newComments = {
+
+        AllUserSocials: [{
+
+            "socialUrlLink": socialUrlLinkvariable,
+            "socialtype": socialTypeVariable,
+            "eMail": req.user.eMail,
+            "generalUserId": req.user.generalUserId,
+            "profileId": req.params.profileId,
+            "statuMode": true,
+            "socialOrder": socialOrder
+
+        }],
+
+        generalUserId: req.user.generalUserId,
+        profileId: req.params.profileId,
+        statueMode: true,
+        panelTitle: "",
+        OrderId: req.body.OrderId,
+        isOpen: false,
+        isDeleteOpen: false,
+        isEditTitle: false,
+        type: "urlLinkPanel"
+    }
+
+
+    db.doc(`/userSocialMediaUrl/${req.params.profileId}`).get().then(async(doc) => {
+
+        if (doc.exists) {
+
+            await db.doc(`/userSocialMediaUrl/${req.params.profileId}`).update({
+                AllUserSocials: admin.firestore.FieldValue.arrayUnion({
+                    "socialUrlLink": socialUrlLinkvariable,
+                    "socialtype": socialTypeVariable,
+                    "eMail": req.user.eMail,
+                    "generalUserId": req.user.generalUserId,
+                    "profileId": req.params.profileId,
+                    "statuMode": true,
+                    "socialOrder": socialOrder
+                })
+            });
+
+            res.json({ Message: "social Exist, that's why array updated" });
+
+        } else {
+
+            await db.doc(`/userSocialMediaUrl/${req.params.profileId}`).set(newComments);
+            res.json({ "First Push Social": newComments });
+
+        }
+
+    }).catch(err => {
+        console.log(err)
+        return res.status(500).json({ Error: err.code })
+    })
+}
+
+
+
+
+
+
+
 
 //add facebook from here url
 //facebook
@@ -703,6 +840,10 @@ exports.ClickUrlCardLink = (req, res) => {
         return res.status(500).json({ err: err.code })
     })
 }
+
+
+/// click  rehbere kaydetme
+
 
 //count when click profile from here
 exports.ClickProfileLink = (req, res) => {
@@ -968,6 +1109,7 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
 
         data.forEach((doc) => {
             singleUserData.allPanelInfo.push({
+
                 accountOwner: doc.data().accountOwner,
                 bankIban: doc.data().bankIban,
                 bankName: doc.data().bankName,
@@ -978,7 +1120,9 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: doc.data().OrderId
+                OrderId: doc.data().OrderId,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
             });
         })
 
@@ -989,9 +1133,9 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
 
         data.forEach((doc) => {
             singleUserData.allPanelInfo.push({
-                kisiselEmail: doc.data().kisiselEmail,
-                kisiselTelefon: doc.data().kisiselTelefon,
-                kurumsalEmail: doc.data().kurumsalEmail,
+
+                panelEmailPostas: doc.data().panelEmailPostas,
+                panelPhoneNumbers: doc.data().panelPhoneNumbers,
                 profilId: doc.data().profilId,
                 profileCity: doc.data().profileCity,
                 profileCountry: doc.data().profileCountry,
@@ -1002,12 +1146,14 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 publicsurname: doc.data().publicsurname,
                 streetAdress: doc.data().streetAdress,
                 statueMode: doc.data().statueMode,
-                profileId: doc.data().profileId,
                 contactDataId: doc.id,
                 isOpen: doc.data().isOpen,
+                profileId: doc.data().profileId,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: doc.data().OrderId
+                OrderId: doc.data().OrderId,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
 
 
             });
@@ -1019,6 +1165,7 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
 
         data.forEach((doc) => {
             singleUserData.allPanelInfo.push({
+
                 statusNameSurname: doc.data().statusNameSurname,
                 statusEmail: doc.data().statusEmail,
                 statusTelefon: doc.data().statusTelefon,
@@ -1027,12 +1174,14 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
                 publicstreetAdress: doc.data().publicstreetAdress,
                 publicDropNot: doc.data().publicDropNot,
                 OrderId: doc.data().OrderId,
-                profileId: doc.data().profileId,
                 type: doc.data().type,
                 isOpen: doc.data().isOpen,
+                profileId: doc.data().profileId,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 documentDataFormId: doc.id,
-                statueMode: doc.data().statueMode
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
             });
         })
 
@@ -1042,14 +1191,40 @@ exports.singleUserInfoWithgeneraluserId = (req, res) => {
 
         data.forEach((doc) => {
             singleUserData.allPanelInfo.push({
+
+
                 belgeDocument: doc.data().belgeDocument,
                 belgeDocumentId: doc.id,
                 OrderId: doc.data().OrderId,
                 isOpen: doc.data().isOpen,
-                profileId: doc.data().profileId,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                statueMode: doc.data().statueMode
+                statueMode: doc.data().statueMode,
+                profileId: doc.data().profileId,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
+
+
+            });
+        })
+
+        return db.collection("panelUrlLinkOfUser").orderBy("OrderId", "asc").where("generalUserId", "==", singleUserData.dataInfo[0].generalUserId).where("statueMode", "==", true).get();
+        // db.collection("panelUrlLinkOfUser").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId)
+
+    }).then((data) => {
+        data.forEach((doc) => {
+            singleUserData.allPanelInfo.push({
+                panelUrlLink: doc.data().panelUrlLink,
+                panelProfileUrlDataId: doc.id,
+                OrderId: doc.data().OrderId,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                profileId: doc.data().profileId,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle
+
             });
         })
 
@@ -1160,9 +1335,11 @@ exports.singleUserInfoWithgeneraluserIdPreviewPageToken = (req, res) => {
 
         data.forEach((doc) => {
             singleUserData.allPanelInfo.push({
+
                 kisiselEmail: doc.data().kisiselEmail,
                 kisiselTelefon: doc.data().kisiselTelefon,
                 kurumsalEmail: doc.data().kurumsalEmail,
+
                 profilId: doc.data().profilId,
                 profileCity: doc.data().profileCity,
                 profileCountry: doc.data().profileCountry,
@@ -1368,6 +1545,7 @@ exports.updateGeneralUserData = (req, res) => {
 
 // update of single profile
 exports.updateSingleUserData = (req, res) => {
+
     let infoToChange = reduceSingleUserInfo(req.body);
     const subProfilDocument = db.doc(`/profilesOfGeneralUser/${req.params.profilId}`);
     subProfilDocument.update(infoToChange).then(() => {
@@ -1408,6 +1586,50 @@ exports.getallSocialMediaofSingleprofile = ((req, res) => {
     })
 
 })
+
+//get All Social Media from there
+
+// exports.getallSocialMediaofSingleprofileFromUrlPanel = ((req, res) => {
+
+
+//     let socialMedia = {}
+
+//     const allsocialMedia = db.collection("panelUrlLinkOfUser").where("profileId", "==", req.params.profileId)
+
+//     allsocialMedia.get().then((data) => {
+
+
+//         socialMedia.allsocial = []
+
+//         data.forEach((doc) => {
+//             socialMedia.allsocial.push({
+
+//                 profileUrlPanel: doc.data().profileUrlPanel,
+//                 OrderId: doc.data().OrderId,
+//                 type: doc.data().type,
+//                 profileId: doc.data().profileId,
+//                 statueMode: doc.data().statueMode
+
+//                 // eMail: doc.data().eMail,
+//                 // socialtype: doc.data().socialtype,
+//                 // socialUrlLink: doc.data().socialUrlLink,
+//                 // profileId: doc.data().profileId,
+//                 // statuMode: doc.data().statuMode,
+//                 // generalUserId: doc.data().generalUserId,
+//                 // socialMediaUrlId: doc.id,
+//                 // socialOrder: doc.data().socialOrder
+
+
+//             });
+//         })
+//     }).then(() => {
+//         return res.json(socialMedia)
+//     }).catch(() => {
+//         return res.status(400).json({ errorgetSuprofile: "error wihle..." })
+//     })
+
+// })
+
 
 // sosyal Media gucelleme
 exports.socialUrlUpdate = (req, res) => {
@@ -1459,24 +1681,19 @@ exports.deleteSocialMediaOfProfile = (req, res) => {
 //panel contact Info register
 exports.postContactInfopanel = (req, res) => {
 
+    let takenPhoneNumber = req.body.takenPhoneNumber
+    let takenEmailEposta = req.body.takenEmailEposta
 
-    if (req.body.profileCountry.trim() == "") {
-        return res.status(400).json({ Body: "you need to choose a country !!" })
-    }
-
-    if (req.body.profileCity.trim() == "") {
-        return res.status(400).json({ Body: "you need to choose a city !!" })
-    }
+    // let takenDefaultNumber = req.body.takenDefaultNumber
+    //let takenDefaultEmail = req.body.takenDefaultEmail
 
     const createContact = {
         publicName: req.body.publicName,
         publicsurname: req.body.publicsurname,
         publicOrganization: req.body.publicOrganization,
         profilePosition: req.body.profilePosition,
-        kurumsalTelefon: req.body.kurumsalTelefon,
-        kisiselTelefon: req.body.kisiselTelefon,
-        kurumsalEmail: req.body.kurumsalEmail,
-        kisiselEmail: req.body.kisiselEmail,
+        panelPhoneNumbers: [{ "phoneNumber": takenPhoneNumber != "" ? takenPhoneNumber : "", "defaultNumber": true }],
+        panelEmailPostas: [{ "emailPosta": takenEmailEposta != "" ? takenEmailEposta : "", "defaultEmaill": true }],
         streetAdress: req.body.streetAdress,
         profileCountry: req.body.profileCountry,
         profileCity: req.body.profileCity,
@@ -1484,15 +1701,63 @@ exports.postContactInfopanel = (req, res) => {
         generalUserId: req.user.generalUserId,
         profileId: req.params.profileId,
         statueMode: true,
+        panelTitle: "",
         OrderId: req.body.OrderId,
         isOpen: false,
         isDeleteOpen: false,
+        isEditTitle: false,
         type: "conatctAddForm"
 
     }
+
+
+
+    // db.doc(`/cardUrlDate/${cardLinkData.generalUserId}`).update({
+    //     clickDate: admin.firestore.FieldValue.arrayUnion(new Date().toISOString())
+    // }).then(()
+
     db.collection("contactData").add(createContact).then((data) => {
         const resScream = createContact
         resScream.contactDataId = data.id
+        res.json({ resScream });
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+        console.error(err)
+    })
+}
+
+// post Fatura Panel from here
+exports.postFaturaBillInfopanel = (req, res) => {
+
+
+    const createBillData = {
+
+        taxNumber: req.body.taxNumber,
+        taxAdministration: req.body.taxAdministration,
+        companyStatus: req.body.companyStatus,
+        officeEmail: req.body.officeEmail,
+        officePhoneNumber: req.body.officePhoneNumber,
+        location: req.body.location,
+
+        generalUserId: req.user.generalUserId,
+        profileId: req.params.profileId,
+        statueMode: true,
+        panelTitle: "",
+        OrderId: req.body.OrderId,
+        isOpen: false,
+        isDeleteOpen: false,
+        isEditTitle: false,
+        type: "faturaData"
+
+    }
+
+    // db.doc(`/cardUrlDate/${cardLinkData.generalUserId}`).update({
+    //     clickDate: admin.firestore.FieldValue.arrayUnion(new Date().toISOString())
+    // }).then(()
+
+    db.collection("BillFaturaData").add(createBillData).then((data) => {
+        const resScream = createContact
+        resScream.faturaDataId = data.id
         res.json({ resScream });
     }).catch((err) => {
         res.status(500).json({ error: "something went wrong!!" });
@@ -1504,35 +1769,38 @@ exports.postContactInfopanel = (req, res) => {
 
 exports.postBanInfopanel = (req, res) => {
 
-    if (req.body.bankName.trim() == "") {
+    let accountOwner = req.body.accountOwner;
+    let bankName = req.body.bankName;
+    let bankStation = req.body.bankStation;
+    let bankIban = req.body.bankIban;
+    let bankAccountNumber = req.body.bankAccountNumber
 
-        return res.status(400).json({ Body: "you need to write a bank Name !!" })
-
-    }
-    if (req.body.bankIban.trim() == "") {
-        return res.status(400).json({ Body: "you need to write bank Iban !!" })
-    }
 
     const createBank = {
-        accountOwner: req.body.accountOwner,
-        bankName: req.body.bankName,
-        bankStation: req.body.bankStation,
-        bankIban: req.body.bankIban,
+
+        bankDataAll: [{ "accountOwner": accountOwner, "bankName": bankName, "bankStation": bankStation, "bankIban": bankIban, "bankAccountNumber": bankAccountNumber }],
         profileId: req.params.profileId,
         generalUserId: req.user.generalUserId,
         isOpen: false,
+        panelTitle: "",
         isDeleteOpen: false,
+        isEditTitle: false,
         statueMode: true,
         OrderId: req.body.OrderId,
         type: "bankform",
-        OrderId: req.body.OrderId
+
     }
+
+
     db.collection("bankData").add(createBank).then((data) => {
 
         const resScream = createBank
         resScream.bankId = data.id
         res.json({ resScream });
+
+
     }).catch((err) => {
+
         res.status(500).json({ error: "something went wrong!!" });
         console.error(err)
     })
@@ -1542,11 +1810,6 @@ exports.postBanInfopanel = (req, res) => {
 //post document to data where to send
 
 exports.postDocumentInfopanel = (req, res) => {
-    if (req.body.emailToSend.trim() == "") {
-
-        return res.status(400).json({ Body: "you need to write a bank Name !!" })
-
-    }
 
     const createDocument = {
         statusNameSurname: req.body.statusNameSurname,
@@ -1559,7 +1822,9 @@ exports.postDocumentInfopanel = (req, res) => {
         generalUserId: req.user.generalUserId,
         publicDropNot: req.body.publicDropNot,
         OrderId: req.body.OrderId,
+        panelTitle: "",
         statueMode: true,
+        isEditTitle: false,
         isOpen: false,
         isDeleteOpen: false,
         type: "documentForm"
@@ -1573,6 +1838,226 @@ exports.postDocumentInfopanel = (req, res) => {
         res.status(500).json({ error: "something went wrong!!" });
         console.error(err)
     })
+}
+
+//post Panel Linki URL
+exports.postUrlLinkiInfopanel = (req, res) => {
+
+    //let panelUrlLinkadd = req.body.panelUrlLink
+
+
+    let socialUrlLinkvariable = req.body.socialUrlLink
+    let socialTypeVariable = req.body.socialtype
+    let socialOrder = req.body.socialOrder
+
+
+    const createSocialInfo = {
+
+        socialUrlLink: socialUrlLinkvariable,
+        socialtype: "web",
+        profileId: req.params.profileId,
+        eMail: req.user.eMail,
+        statuMode: true,
+        socialOrder: socialOrder
+
+    }
+
+    const createContact = {
+
+        profileUrlPanel: [{
+
+            "socialUrlLink": socialUrlLinkvariable,
+            "socialtype": socialTypeVariable,
+            "eMail": req.user.eMail,
+            "generalUserId": req.user.generalUserId,
+            "profileId": req.params.profileId,
+            "statuMode": true,
+            "socialOrder": socialOrder,
+            "socialUrlHead": "https://",
+            "placeholder": ""
+
+        }],
+        generalUserId: req.user.generalUserId,
+        profileId: req.params.profileId,
+        statueMode: true,
+        panelTitle: "",
+        OrderId: req.body.OrderId,
+        isOpen: false,
+        isDeleteOpen: false,
+        isEditTitle: false,
+        type: "urlLinkPanel"
+    }
+    db.collection("panelUrlLinkOfUser").add(createContact).then((data) => {
+
+        //db.collection("userSocialMediaUrl").add(createSocialInfo)
+
+    }).then((data) => {
+
+        const resScream = createContact
+            // resScream.contactDataId = data.id
+        res.json({ resScream });
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+        console.error(err)
+    })
+
+}
+
+
+//updatae  Url Linki always from here
+exports.updateURLpanelLinki = (req, res) => {
+
+    let contactbilgi = reduceUrlPanelInfo(req.body);
+    db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//update Url Linki Array from heree
+exports.updateProfileUrlLinksDataOnly = (req, res) => {
+
+    let ArrayIndexTochange = req.body.arrayIndexthis
+    let socialOrder = req.body.socialOrder
+    let socialUrlHead = req.body.socialUrlHead
+    let socialUrlLink = req.body.socialUrlLink
+    let socialtype = req.body.socialtype
+    let statuMode = req.body.statuMode
+    let placeholder = req.body.placeholder
+    let profileId = req.body.profileId
+
+
+    // const createSocialInfo = {
+
+    //     socialUrlLink: socialUrlLink,
+    //     socialtype: socialtype,
+    //     profileId: profileId,
+    //     eMail: req.user.eMail,
+    //     statuMode: true,
+    //     socialOrder: socialOrder
+
+    // }
+
+
+    let profilUrlArraysOfpanel = []
+    db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).get().then((doc) => {
+
+        profilUrlArraysOfpanel = doc.data().profileUrlPanel
+
+    }).then(() => {
+
+        if (profilUrlArraysOfpanel[ArrayIndexTochange] == undefined) {
+
+            profilUrlArraysOfpanel.push({
+                "eMail": req.user.eMail,
+                "generalUserId": req.user.generalUserId,
+                "socialOrder": socialOrder,
+                "socialUrlHead": socialUrlHead,
+                "socialUrlLink": socialUrlLink,
+                "socialtype": socialtype,
+                "statuMode": statuMode,
+                "placeholder": placeholder
+            })
+
+
+            return db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update({
+
+                profileUrlPanel: profilUrlArraysOfpanel
+
+
+
+            }).then(() => {
+
+
+                return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı pUSH!!" })
+
+
+                // db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update({
+
+                //     profileUrlPanel: admin.firestore.FieldValue.arrayUnion({
+
+                //         "eMail": req.user.eMail,
+                //         "generalUserId": req.user.generalUserId,
+                //         "socialOrder": socialOrder,
+                //         "socialUrlHead": socialUrlHead,
+                //         "socialUrlLink": socialUrlLink,
+                //         "socialtype": socialtype,
+                //         "statuMode": statuMode,
+                //         "placeholder": placeholder,
+
+                //     })
+                // }).then(() => {
+
+                //     return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+                // }).catch((eror) => {
+                //     return res.json({ Mesaj: "Union yaparken hata var!!" })
+                // })
+
+
+            }).catch((err) => {
+                console.log("index fazla hata oluştu")
+            })
+        } else {
+
+            profilUrlArraysOfpanel[ArrayIndexTochange].socialOrder = socialOrder;
+            profilUrlArraysOfpanel[ArrayIndexTochange].socialUrlHead = socialUrlHead;
+            profilUrlArraysOfpanel[ArrayIndexTochange].socialUrlLink = socialUrlLink;
+            profilUrlArraysOfpanel[ArrayIndexTochange].socialtype = socialtype;
+            profilUrlArraysOfpanel[ArrayIndexTochange].statuMode = statuMode;
+            profilUrlArraysOfpanel[ArrayIndexTochange].placeholder = placeholder;
+
+
+        }
+
+    }).then(() => {
+
+        return db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update({
+            profileUrlPanel: profilUrlArraysOfpanel
+        }).then(() => {
+
+
+            // db.doc(`/userSocialMediaUrl/${req.params.socialMediaId}`).update({
+            //     eMail:req.user.eMail,
+            //     generalUserId: req.user.generalUserId,
+            //     socialOrder:socialOrder,
+            //     socialtype: socialtype,
+            //     statuMode:statuMode
+            // })
+            // socialUrlLink: socialUrlLink,
+            //     socialtype: socialtype,
+            //     profileId: profileId,
+            //     eMail: req.user.eMail,
+            //     statuMode: true,
+            //     socialOrder: socialOrder
+
+            // return db.collection("userSocialMediaUrl").add({
+
+            //     socialUrlLink: "socialUrlLink",
+            //     socialtype: "socialtype",
+            //     profileId: "profileId",
+            //     eMail: req.user.eMail,
+            //     statuMode: true,
+            //     socialOrder: "socialOrder"
+
+            // })
+
+
+        }).then(() => {
+
+            return res.json({ Mesaj: "Kullanıcı bilgileri doğru gücelendi index var!!" })
+
+        }).catch((err) => {
+            console.error(err)
+            return res.status(500).json({ err: err.code })
+
+        })
+    })
+
+
+
 }
 
 
@@ -1614,6 +2099,7 @@ exports.uploadFilePdf = (req, res) => {
         file.pipe(fs.createWriteStream(filePath));
 
 
+
     });
     busboy.on("finish", () => {
         admin.storage().bucket().upload(imageToBeUploaded.filePath, {
@@ -1628,12 +2114,15 @@ exports.uploadFilePdf = (req, res) => {
             // if (req.user.secretKod){
             //     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded })
             // }
+            console.log("hee bak:", imageUrlUploaded)
 
             const fileUploadInfo = {
                 belgeDocument: imageUrlUploaded,
                 isOpen: false,
                 isDeleteOpen: false,
                 statueMode: true,
+                isEditTitle: false,
+                panelTitle: "",
                 generalUserId: req.user.generalUserId,
                 OrderId: 0,
                 profileId: req.params.profileId,
@@ -1644,6 +2133,7 @@ exports.uploadFilePdf = (req, res) => {
             return db.collection("fileUploadDocument").add(fileUploadInfo)
 
             //return (db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded }));
+
 
         }).then(() => {
             return res.json({ mesaj: "File Successfully Updated" });
@@ -1658,8 +2148,52 @@ exports.uploadFilePdf = (req, res) => {
 
 }
 
+//create first Where to upload file from here
+exports.postFirstPlaceWhereToPutUploadFilepanel = (req, res) => {
+
+
+    let belgeDocumentTo = req.body.belgeDocument
+
+
+
+    const fileUploadInfo = {
+
+        belgeDocumentUploads: [{ "belgeDocument": belgeDocumentTo, "fileIndex": 0 }],
+        isOpen: false,
+        isDeleteOpen: false,
+        statueMode: true,
+        isEditTitle: false,
+        panelTitle: "",
+        generalUserId: req.user.generalUserId,
+        OrderId: req.body.OrderId,
+        profileId: req.params.profileId,
+        type: "uploadFileDocument"
+
+    }
+
+    db.collection("fileUploadDocument").add(fileUploadInfo).then((data) => {
+
+        const resScream = fileUploadInfo
+        resScream.belgeDocumentId = data.id
+
+        res.json({ resScream });
+
+
+    }).catch((err) => {
+        res.status(500).json({ error: "something went wrong!!" });
+        console.error(err)
+    })
+}
+
+
+
+
 //belgeyi yenle
 exports.uploadFilePdfChange = (req, res) => {
+
+
+
+
     const BusBoy = require("busboy")
     const path = require("path")
     const os = require("os")
@@ -1697,7 +2231,9 @@ exports.uploadFilePdfChange = (req, res) => {
 
 
     });
+
     busboy.on("finish", () => {
+
         admin.storage().bucket().upload(imageToBeUploaded.filePath, {
             resumable: false,
             metadata: {
@@ -1705,8 +2241,18 @@ exports.uploadFilePdfChange = (req, res) => {
                     contentType: imageToBeUploaded.mimetype
                 }
             }
+
+
         }).then(() => {
+
             const imageUrlUploaded = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageFileName}?alt=media`;
+
+
+
+
+
+
+
             // if (req.user.secretKod){
             //     db.doc(`/profilesOfGeneralUser/${req.params.profileId}`).update({ belgeDocument: imageUrlUploaded })
             // }
@@ -1724,10 +2270,93 @@ exports.uploadFilePdfChange = (req, res) => {
             // }
             //return db.collection("fileUploadDocument").add(fileUploadInfo)
 
-            return (db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).update({ belgeDocument: imageUrlUploaded }));
+            //update ONLy Bank Info Array
+
+
+
+
+            // let accountOwner = req.body.accountOwner;
+            // let bankName = req.body.bankName;
+            // let bankStation = req.body.bankStation;
+            // let bankIban = req.body.bankIban;
+            // let bankAccountNumber = req.body.bankAccountNumber
+
+
+
+
+
+            let uploadofArraysOfpanel = []
+                // let ArrayIndexTochange = req.body.arrayLentghToChange
+
+            let arraySayac = 0;
+
+            return db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).get().then((doc) => {
+
+
+                uploadofArraysOfpanel = doc.data().belgeDocumentUploads
+
+                //console.log("uploadaData::", doc.data().belgeDocumentUploads)
+
+
+            }).then(() => {
+
+
+                uploadofArraysOfpanel.push({
+                    "belgeDocument": imageUrlUploaded
+                })
+
+                return db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).update({
+
+                    belgeDocumentUploads: uploadofArraysOfpanel
+
+                })
+
+
+
+                // for (let index = 0; index <= 3; index++){
+
+                //     console.log("arrayburada", uploadofArraysOfpanel)
+
+                //     console.log("arrayburada", index)
+
+                //     if (uploadofArraysOfpanel[index] == undefined) {
+
+                //         uploadofArraysOfpanel.push({
+                //             "belgeDocument": imageUrlUploaded
+                //         })
+
+
+                //         return db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).update({
+
+                //             belgeDocumentUploads: uploadofArraysOfpanel
+
+                //         })
+
+                //     } else {
+
+                //         uploadofArraysOfpanel[index].belgeDocument = uploadofArraysOfpanel[arraySayac].belgeDocument;
+
+                //         console.log("allFile", uploadofArraysOfpanel);
+
+                //         return db.doc(`/fileUploadDocument/${req.params.fileUploadDocumentId}`).update({
+
+                //             belgeDocumentUploads: uploadofArraysOfpanel
+
+
+                //         }).then(() => {
+                //             console.log("bauaraya girddi index var ")
+                //         })
+                //     }
+
+                // }
+
+            })
 
         }).then(() => {
+
             return res.json({ mesaj: "File Successfully Updated" });
+
+
         }).catch(err => {
             console.error(err)
             return res.status(500).json({ error: err.code })
@@ -1751,21 +2380,22 @@ exports.getpanelInfFromHere = (req, res) => {
     console.log("ilk hata girdi")
 
     allpanelProfile.get().then((data) => {
-
         panelDataInfo.bankDataInfo = []
         data.forEach((doc) => {
             panelDataInfo.bankDataInfo.push({
-                accountOwner: doc.data().accountOwner,
-                bankIban: doc.data().bankIban,
-                bankName: doc.data().bankName,
-                bankStation: doc.data().bankStation,
+
+                bankDataAll: doc.data().bankDataAll,
                 profileId: doc.data().profileId,
                 BankDataId: doc.id,
                 statueMode: doc.data().statueMode,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: doc.data().OrderId
+                OrderId: doc.data().OrderId,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle
+
+
             });
         })
 
@@ -1775,9 +2405,8 @@ exports.getpanelInfFromHere = (req, res) => {
     }).then((data) => {
         data.forEach((doc) => {
             panelDataInfo.bankDataInfo.push({
-                kisiselEmail: doc.data().kisiselEmail,
-                kisiselTelefon: doc.data().kisiselTelefon,
-                kurumsalEmail: doc.data().kurumsalEmail,
+                panelEmailPostas: doc.data().panelEmailPostas,
+                panelPhoneNumbers: doc.data().panelPhoneNumbers,
                 profilId: doc.data().profilId,
                 profileCity: doc.data().profileCity,
                 profileCountry: doc.data().profileCountry,
@@ -1792,17 +2421,19 @@ exports.getpanelInfFromHere = (req, res) => {
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                OrderId: doc.data().OrderId
-
-
+                OrderId: doc.data().OrderId,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
             });
         })
 
         return db.collection("documentDataForm").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
+
     }).then((data) => {
 
         data.forEach((doc) => {
             panelDataInfo.bankDataInfo.push({
+
                 statusNameSurname: doc.data().statusNameSurname,
                 statusEmail: doc.data().statusEmail,
                 statusTelefon: doc.data().statusTelefon,
@@ -1815,7 +2446,10 @@ exports.getpanelInfFromHere = (req, res) => {
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 documentDataFormId: doc.id,
-                statueMode: doc.data().statueMode
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle,
+
             });
         })
         return db.collection("fileUploadDocument").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
@@ -1824,13 +2458,64 @@ exports.getpanelInfFromHere = (req, res) => {
         data.forEach((doc) => {
 
             panelDataInfo.bankDataInfo.push({
-                belgeDocument: doc.data().belgeDocument,
+                belgeDocumentUploads: doc.data().belgeDocumentUploads,
                 belgeDocumentId: doc.id,
                 OrderId: doc.data().OrderId,
                 isOpen: doc.data().isOpen,
                 isDeleteOpen: doc.data().isDeleteOpen,
                 type: doc.data().type,
-                statueMode: doc.data().statueMode
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle
+
+
+
+
+            });
+        })
+
+        return db.collection("panelUrlLinkOfUser").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+
+            panelDataInfo.bankDataInfo.push({
+                profileUrlPanel: doc.data().profileUrlPanel,
+                panelProfileUrlDataId: doc.id,
+                OrderId: doc.data().OrderId,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle
+
+            });
+        })
+
+        return db.collection("BillFaturaData").orderBy("OrderId", "asc").where("profileId", "==", req.params.profileId).get();
+
+    }).then((data) => {
+
+        data.forEach((doc) => {
+
+            panelDataInfo.bankDataInfo.push({
+
+                taxNumber: doc.data().taxNumber,
+                taxAdministration: doc.data().taxAdministration,
+                companyStatus: doc.data().companyStatus,
+                officeEmail: doc.data().officeEmail,
+                officePhoneNumber: doc.data().officePhoneNumber,
+                location: doc.data().location,
+                faturaDataId: doc.id,
+                OrderId: doc.data().OrderId,
+                isOpen: doc.data().isOpen,
+                isDeleteOpen: doc.data().isDeleteOpen,
+                type: doc.data().type,
+                statueMode: doc.data().statueMode,
+                panelTitle: doc.data().panelTitle,
+                isEditTitle: doc.data().isEditTitle
 
             });
         })
@@ -1845,6 +2530,7 @@ exports.getpanelInfFromHere = (req, res) => {
 
 // update bank Info
 exports.updateBankInfo = (req, res) => {
+
     let bankbilgi = reduceBankInfo(req.body);
     db.doc(`/bankData/${req.params.bankDataId}`).update(bankbilgi).then(() => {
 
@@ -1857,20 +2543,293 @@ exports.updateBankInfo = (req, res) => {
 
 }
 
+//update ONLy Bank Info Array
+exports.updateBankInfoArrayDataOnly = (req, res) => {
+
+    let accountOwner = req.body.accountOwner;
+    let bankName = req.body.bankName;
+    let bankStation = req.body.bankStation;
+    let bankIban = req.body.bankIban;
+    let bankAccountNumber = req.body.bankAccountNumber
+
+    let ArrayIndexTochange = req.body.arrayLentghToChange
+
+
+
+    let bankInfoArraysOfpanel = []
+    db.doc(`/bankData/${req.params.BankDataId}`).get().then((doc) => {
+
+        console.log("veri geldi::", doc.data().bankDataAll)
+
+        bankInfoArraysOfpanel = doc.data().bankDataAll
+
+    }).then(() => {
+
+        if (bankInfoArraysOfpanel[ArrayIndexTochange] == undefined) {
+
+            console.log("fazla geldii array::")
+
+            return db.doc(`/bankData/${req.params.BankDataId}`).update({
+
+                bankDataAll: bankInfoArraysOfpanel
+            }).then(() => {
+
+                db.doc(`/bankData/${req.params.BankDataId}`).update({
+                    bankDataAll: admin.firestore.FieldValue.arrayUnion({ "accountOwner": accountOwner, "bankAccountNumber": bankAccountNumber, "bankIban": bankIban, "bankName": bankName, "bankStation": bankStation }),
+                }).then(() => {
+                    console.log("union yapıldı burada")
+                    return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+                }).catch((eror) => {
+                    return res.json({ Mesaj: "Union yaparken hata var!!" })
+                })
+            }).catch((err) => {
+                console.log("index fazla hata oluştu")
+            })
+        } else {
+            bankInfoArraysOfpanel[ArrayIndexTochange].accountOwner = accountOwner;
+            bankInfoArraysOfpanel[ArrayIndexTochange].bankAccountNumber = bankAccountNumber;
+            bankInfoArraysOfpanel[ArrayIndexTochange].bankIban = bankIban;
+            bankInfoArraysOfpanel[ArrayIndexTochange].bankName = bankName;
+            bankInfoArraysOfpanel[ArrayIndexTochange].bankStation = bankStation;
+        }
+    }).then(() => {
+        db.doc(`/bankData/${req.params.BankDataId}`).update({
+            bankDataAll: bankInfoArraysOfpanel
+        })
+    }).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru gücelendi!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+
+}
+
+
+
+
+
 
 // update ContactData Info
 exports.updateContactInfo = (req, res) => {
     let contactbilgi = reduceContactInfo(req.body);
     db.doc(`/contactData/${req.params.conatctDataId}`).update(contactbilgi).then(() => {
-
         return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
 
+
+    // .then(() => {
+    //     db.doc(`/contactData/${req.params.conatctDataId}`).update({
+    //         panelPhoneNumbers: admin.firestore.FieldValue.arrayUnion({ "phoneNumber": contactbilgi.takenPhoneNumber }),
+    //         panelEmailPostas: admin.firestore.FieldValue.arrayUnion({ "emailPosta": contactbilgi.takenEmailEposta })
+    //     })
+    // })
+
+}
+
+//udate Faturea Bill
+
+exports.updateFaturaBillInfo = (req, res) => {
+    let contactbilgi = reducekulBill(req.body);
+    db.doc(`/BillFaturaData/${req.params.faturaDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru girilmiştir!!" })
     }).catch((err) => {
         console.error(err)
         return res.status(500).json({ err: err.code })
     })
 
 }
+
+
+
+
+
+//update ONLY pHONE nUMBER aRRAY
+exports.updateContactInfoArrayPhoneOnly = (req, res) => {
+
+    // let oldphoneInputValue = req.body.alreadyPhoneNumber
+    let newPhoneInputValue = req.body.newEnterPhoneInput
+
+    let newDefaultPhonenumber = req.body.newDefaultPhonenumber
+
+    let ArrayIndexTochange = req.body.arrayLentghToChange
+
+    let phoneNumbersOfpanel = []
+    db.doc(`/contactData/${req.params.conatctDataId}`).get().then((doc) => {
+
+        console.log("veri geldi::", doc.data().panelPhoneNumbers)
+
+        phoneNumbersOfpanel = doc.data().panelPhoneNumbers
+    }).then(() => {
+
+        if (phoneNumbersOfpanel[ArrayIndexTochange] == undefined) {
+
+            console.log("fazla geldii array::")
+
+            return db.doc(`/contactData/${req.params.conatctDataId}`).update({
+
+                panelPhoneNumbers: phoneNumbersOfpanel
+            }).then(() => {
+
+                db.doc(`/contactData/${req.params.conatctDataId}`).update({
+                    panelPhoneNumbers: admin.firestore.FieldValue.arrayUnion({ "phoneNumber": newPhoneInputValue, "defaultNumber": newDefaultPhonenumber }),
+                }).then(() => {
+                    console.log("union yapıldı burada")
+                    return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+                }).catch((eror) => {
+                    return res.json({ Mesaj: "Union yaparken hata var!!" })
+                })
+
+
+            }).catch((err) => {
+                console.log("index fazla hata oluştu")
+            })
+        } else {
+            phoneNumbersOfpanel[ArrayIndexTochange].phoneNumber = newPhoneInputValue;
+            phoneNumbersOfpanel[ArrayIndexTochange].defaultNumber = newDefaultPhonenumber;
+            console.log("indexoyaa:", phoneNumbersOfpanel[ArrayIndexTochange])
+        }
+    }).then(() => {
+        db.doc(`/contactData/${req.params.conatctDataId}`).update({
+            panelPhoneNumbers: phoneNumbersOfpanel
+        })
+    }).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru gücelendi!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+
+
+// update only Email Array from here
+exports.updateContactInfoEmailOnly = (req, res) => {
+
+
+    let newEmailInputValue = req.body.newEmailPosta
+    let newDefautEmail = req.body.newDefaultEmail
+    let ArrayIndexTochange = req.body.arrayLentghToChange
+
+    let emailPostaOfpanel = []
+    db.doc(`/contactData/${req.params.conatctDataId}`).get().then((doc) => {
+
+        console.log("veri geldi::", doc.data().panelEmailPostas)
+
+        emailPostaOfpanel = doc.data().panelEmailPostas
+    }).then(() => {
+
+
+        if (emailPostaOfpanel[ArrayIndexTochange] == undefined) {
+
+            console.log("fazla geldii array::")
+
+            return db.doc(`/contactData/${req.params.conatctDataId}`).update({
+
+                panelEmailPostas: emailPostaOfpanel
+            }).then(() => {
+
+                db.doc(`/contactData/${req.params.conatctDataId}`).update({
+                    panelEmailPostas: admin.firestore.FieldValue.arrayUnion({ "emailPosta": newEmailInputValue, "defaultEmaill": newDefautEmail }),
+
+                }).then(() => {
+                    console.log("union yapıldı burada")
+                    return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+                }).catch((eror) => {
+                    return res.json({ Mesaj: "Union yaparken hata var!!" })
+                })
+            }).catch((err) => {
+                console.log("index fazla hata oluştu")
+            })
+        } else {
+
+            emailPostaOfpanel[ArrayIndexTochange].emailPosta = newEmailInputValue;
+            emailPostaOfpanel[ArrayIndexTochange].defaultEmaill = newDefautEmail;
+
+        }
+
+
+
+        // for (let index = 0; index < ArrayLenght; index++) {
+
+        //     if (emailPostaOfpanel[index] == undefined) {
+        //         return res.json({ Mesaj: "Nope index too long!!" })
+        //     } else {
+
+        //         emailPostaOfpanel[index].emailPosta = newEmailInputValue;
+        //     }
+
+        // }
+
+    }).then(() => {
+        db.doc(`/contactData/${req.params.conatctDataId}`).update({
+            panelEmailPostas: emailPostaOfpanel
+        })
+    }).then(() => {
+        return res.json({ Mesaj: "Kullanıcı bilgileri doğru gücelendi!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err })
+    })
+}
+
+//Delete Phone Only from here
+
+exports.deleteArrayInsidePhone = (req, res) => {
+
+    // let currentId = req.body.currentIdd
+
+    let existPhone = req.body.existPhoneNumber
+    let existDefaultPhoneNumber = req.body.existDefaultPhone
+
+    db.doc(`/contactData/${req.params.conatctDataId}`).update({
+
+        panelPhoneNumbers: admin.firestore.FieldValue.arrayRemove({ "phoneNumber": existPhone, "defaultNumber": existDefaultPhoneNumber })
+
+
+    }).then(() => {
+        console.log("union yapıldı burada")
+
+        return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+
+    }).catch((eror) => {
+
+        return res.json({ Mesaj: "Union yaparken hata var!!" })
+
+    })
+
+}
+
+
+// Delete Email Array inside Contact Here
+
+exports.deleteArrayInsideEmail = (req, res) => {
+
+    // let currentId = req.body.currentIdd
+    let existEmail = req.body.existEmail
+    let existDefaultEmail = req.body.existDefaultEmail
+
+    db.doc(`/contactData/${req.params.conatctDataId}`).update({
+
+        panelEmailPostas: admin.firestore.FieldValue.arrayRemove({ "emailPosta": existEmail, "defaultEmaill": existDefaultEmail })
+
+    }).then(() => {
+        console.log("union yapıldı burada")
+        return res.json({ Mesaj: "Array fazla, o yüzden Union Yapıldı!!" })
+    }).catch((eror) => {
+        return res.json({ Mesaj: "Union yaparken hata var!!" })
+    })
+
+}
+
+
+
+
+
 
 ///UPDATE Document from here
 exports.updateDocumentFormInfo = (req, res) => {
@@ -1926,6 +2885,21 @@ exports.updateStattuModeBank = (req, res) => {
 
 }
 
+
+//update StatuMode of Profile url here
+exports.updateStattuModeProfileUrl = (req, res) => {
+    let bankbilgi = reduceProfileUrlStatusMode(req.body);
+
+    db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update(bankbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+
 //update statusMode contactData
 exports.updateStattuModeContact = (req, res) => {
 
@@ -1939,6 +2913,22 @@ exports.updateStattuModeContact = (req, res) => {
     })
 
 }
+
+// Fatura StatueMode
+
+exports.updateStattuModeFaturaBu = (req, res) => {
+
+    let contactbilgi = reduceFaturaBillStatusMode(req.body);
+
+    db.doc(`/BillFaturaData/${req.params.faturaDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
 
 //update statueMode Document BELGE
 exports.updateStattuModeDocumentToChange = (req, res) => {
@@ -1978,6 +2968,17 @@ exports.updateOrderOfBank = (req, res) => {
     })
 }
 
+//update order of Profile Url Panel
+exports.updateOrderOfPanelProfileUrl = (req, res) => {
+    let bankbilgi = reduceOrderIdofprofileUrl(req.body);
+    db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update(bankbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
 //update Orderof contact
 exports.updateOrderOfContact = (req, res) => {
     let contactbilgi = reduceOrderIdofContact(req.body);
@@ -1988,6 +2989,19 @@ exports.updateOrderOfContact = (req, res) => {
         return res.status(500).json({ err: err.code })
     })
 }
+
+//update order of Fatura
+exports.updateOrderOfFaturaBill = (req, res) => {
+    let contactbilgi = reduceOrderIdofContact(req.body);
+    db.doc(`/BillFaturaData/${req.params.faturaDataId}`).update(contactbilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully added!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+
 
 //order of Document Form
 exports.updateOrderOfDocument = (req, res) => {
@@ -2014,6 +3028,80 @@ exports.updateOrderOfFileUploaded = (req, res) => {
 ///panel updated ***************************************************
 
 
+//******* panel Title//
+//update panel Title from here Conatct panel title
+exports.updateConatctPanelTitle = (req, res) => {
+    let updateTitlebilgi = reduceTitleUpdatePanel(req.body);
+    db.doc(`/contactData/${req.params.contactDataId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+// update Panel Title fatura
+exports.updateFaturaBillPanelTitle = (req, res) => {
+    let updateTitlebilgi = reduceTitleUpdatePanel(req.body);
+    db.doc(`/BillFaturaData/${req.params.faturaDataId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+
+//upadte Panel title of Panel Url from here
+exports.updatePanelUrlLinkPanelTitle = (req, res) => {
+    let updateTitlebilgi = reduceTitleUpdatePanelProfileUrl(req.body);
+    db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//bank Title panel
+exports.updateBankPanelTitle = (req, res) => {
+    let updateTitlebilgi = reduceTitleUpdatePanelBank(req.body);
+    db.doc(`/bankData/${req.params.bankDataId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//Document panel Title
+exports.updateDocumentPanelTitle = (req, res) => {
+    let updateTitlebilgi = reduceTitleUpdatePanelDocument(req.body);
+    db.doc(`/documentDataForm/${req.params.documentDataFormId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+}
+
+//File Upload Title Panel
+exports.updateFileUploadPanelTitle = (req, res) => {
+
+    let updateTitlebilgi = reduceTitleUpdatePanelFileUpload(req.body);
+    db.doc(`/fileUploadDocument/${req.params.belgeDocumentId}`).update(updateTitlebilgi).then(() => {
+        return res.json({ Mesaj: "SuccessFully updated!!" })
+    }).catch((err) => {
+        console.error(err)
+        return res.status(500).json({ err: err.code })
+    })
+
+}
+
+//****************en of panel Title */
+
+
+
 //delete Bank Panel from here
 exports.bankPanelDelete = (req, res) => {
 
@@ -2032,6 +3120,36 @@ exports.bankPanelDelete = (req, res) => {
 exports.contactPanelDelete = (req, res) => {
 
     const contactDataId = db.doc(`/contactData/${req.params.contactDataId}`);
+    contactDataId.get().then((doc) => {
+        contactDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+}
+
+//delete Fatura Bill Time 
+exports.FaturaBillPanelDelete = (req, res) => {
+
+    const contactDataId = db.doc(`/BillFaturaData/${req.params.faturaDataId}`);
+    contactDataId.get().then((doc) => {
+        contactDataId.delete();
+    }).then(() => {
+        return res.json({ Message: "SuccessFully Deleted !!!" })
+    }).catch(err => {
+        console.error(err);
+        return res.status(500).json({ Err: err.code })
+    })
+
+
+}
+
+//delete Profile Url from heer   
+exports.profileUrlPanelDelete = (req, res) => {
+
+    const contactDataId = db.doc(`/panelUrlLinkOfUser/${req.params.panelProfileUrlDataId}`);
     contactDataId.get().then((doc) => {
         contactDataId.delete();
     }).then(() => {
@@ -2109,6 +3227,8 @@ exports.BillInfoData = (req, res) => {
     })
 }
 
+
+
 //change Password from 
 exports.parolaChangeOfUser = (req, res) => {
 
@@ -2152,4 +3272,137 @@ exports.parolaChangeOfUser = (req, res) => {
 
 
     }
+}
+
+
+//upoad data from here
+///************************************************************ independant from heer */
+exports.postUserDatafromheer = (req, res) => {
+
+
+
+    const newPersonInfo = {
+        eMail: req.body.eMail,
+        publicName: req.body.publicName,
+        publicSurname: req.body.publicSurname,
+        userHandleName: req.body.userHandleName,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword
+    }
+
+
+
+    const userCredentials = {
+        eMail: newPersonInfo.eMail,
+        publicName: newPersonInfo.publicName,
+        publicSurname: newPersonInfo.publicSurname,
+        generalUserId,
+        userHandleName: newPersonInfo.userHandleName,
+        startDateCount: new Date().toISOString(),
+        birthDate: "",
+        phoneNumber: "",
+        gender: 0,
+        cardPairing: ""
+    }
+
+
+    const newProfileAdd = {
+        profileTag: req.body.profileTag,
+        generalUserId: req.user.uid,
+        eMail: req.user.eMail,
+        customUrl: "",
+        dateofCreation: new Date().toISOString(),
+        orderOfProfile: req.body.orderOfProfile,
+        phoneNumber: "",
+        profileAdres: "",
+        profileCompany: "",
+        profilDescription: "",
+        profileEmail: "",
+        profileTheme: "light",
+        publicName: "",
+        publicSurName: "",
+        statusMode: true,
+        statusOfUrl: true,
+        placeOfSocialMediaPosition: "top",
+        telNumber: "",
+        taxNumber: "",
+        taxAdministration: "",
+        companyStatus: "",
+        officeEmail: "",
+        websiteUrlLink: "",
+        officePhoneNumber: "",
+        location: "",
+        position: "",
+        profileUrl: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/profileMages%2F${defaultImage}?alt=media`,
+        backgorundImage: `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/backgroundMages%2F${backImag}?alt=media`,
+    }
+
+
+    const createBank = {
+        accountOwner: req.body.accountOwner,
+        bankName: req.body.bankName,
+        bankStation: req.body.bankStation,
+        bankIban: req.body.bankIban,
+        profileId: req.params.profileId,
+        generalUserId: req.user.generalUserId,
+        isOpen: false,
+        panelTitle: "",
+        isDeleteOpen: false,
+        isEditTitle: false,
+        statueMode: true,
+        OrderId: req.body.OrderId,
+        type: "bankform",
+        OrderId: req.body.OrderId
+    }
+
+
+    const createContact = {
+        publicName: req.body.publicName,
+        publicsurname: req.body.publicsurname,
+        publicOrganization: req.body.publicOrganization,
+        profilePosition: req.body.profilePosition,
+        panelPhoneNumbers: [{ "phoneNumber": takenPhoneNumber != "" ? takenPhoneNumber : "" }],
+        panelEmailPostas: [{ "emailPosta": takenEmailEposta != "" ? takenEmailEposta : "" }],
+        streetAdress: req.body.streetAdress,
+        profileCountry: req.body.profileCountry,
+        profileCity: req.body.profileCity,
+        profileNot: req.body.profileNot,
+        generalUserId: req.user.generalUserId,
+        profileId: req.params.profileId,
+        statueMode: true,
+        panelTitle: "",
+        OrderId: req.body.OrderId,
+        isOpen: false,
+        isDeleteOpen: false,
+        isEditTitle: false,
+        type: "conatctAddForm"
+
+    }
+
+    db.doc(`/userGeneral/${newPersonInfo.eMail}`).set(userCredentials).then(() => {
+        db.collection("profilesOfGeneralUser").add(newProfileAdd);
+
+    })
+
+
+
+
+    //       .then(()=>{
+    //         db.collection("bankData").add(createBank).then((data) => {
+    //             const resScream = createBank
+    //             resScream.bankId = data.id
+    //            // res.json({ resScream });
+
+    //       })
+    //     }).then(()=>{
+
+
+    //         db.collection("contactData").add(createContact).then((data) => {
+    //             const resScream = createContact
+    //             resScream.contactDataId = data.id
+    //             res.json({ resScream });
+    //     })
+
+    // })
+
 }
